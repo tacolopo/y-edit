@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.core.vite.json",
+  "compilerOptions": {
+    "paths": {
+      "@app/*": [
+        "src/client/*",
+        "src/core/*"
+      ],
+      "@core/*": ["src/core/*"]
+    }
+  },
+  "exclude": [
+    "src/proprietary",
+    "src/desktop",
+    "src/saas",
+    "node_modules"
+  ]
+}

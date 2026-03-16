@@ -3,14 +3,12 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-const VALID_MODES = ['core', 'proprietary', 'saas', 'desktop'] as const;
+const VALID_MODES = ['core', 'client'] as const;
 type BuildMode = typeof VALID_MODES[number];
 
 const TSCONFIG_MAP: Record<BuildMode, string> = {
   core: './tsconfig.core.vite.json',
-  proprietary: './tsconfig.proprietary.vite.json',
-  saas: './tsconfig.saas.vite.json',
-  desktop: './tsconfig.desktop.vite.json',
+  client: './tsconfig.client.vite.json',
 };
 
 export default defineConfig(({ mode }) => {
@@ -25,7 +23,7 @@ export default defineConfig(({ mode }) => {
   // unless DISABLE_ADDITIONAL_FEATURES=true, in which case default to core.
   const effectiveMode: BuildMode = (VALID_MODES as readonly string[]).includes(mode)
     ? (mode as BuildMode)
-    : process.env.DISABLE_ADDITIONAL_FEATURES === 'true' ? 'core' : 'proprietary';
+    : 'client';
 
   const tsconfigProject = TSCONFIG_MAP[effectiveMode];
 
@@ -61,7 +59,7 @@ export default defineConfig(({ mode }) => {
         ignored: ['**/src-tauri/**'],
       },
       // Only use proxy in web mode - Tauri handles backend connections directly
-      proxy: effectiveMode === 'desktop' ? undefined : {
+      proxy: effectiveMode === 'client' ? undefined : {
         '/api': {
           target: 'http://localhost:8080',
           changeOrigin: true,

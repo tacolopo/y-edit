@@ -1,18 +1,18 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "Stirling-PDF",
-    "version": "2.7.1",
-    "identifier": "stirling.pdf.dev",
+    "productName": "Y-Edit",
+    "version": "0.1.0",
+    "identifier": "com.yedit.app",
     "build": {
         "frontendDist": "../dist",
         "devUrl": "http://localhost:5173",
-        "beforeDevCommand": "npm run dev -- --mode desktop",
-        "beforeBuildCommand": "node scripts/build-provisioner.mjs && npm run build -- --mode desktop"
+        "beforeDevCommand": "npm run dev -- --mode client",
+        "beforeBuildCommand": "npm run build -- --mode client"
     },
     "app": {
         "windows": [
             {
-                "title": "Stirling-PDF",
+                "title": "Y-Edit",
                 "width": 1280,
                 "height": 800,
                 "resizable": true,
@@ -23,12 +23,9 @@
     },
     "bundle": {
         "active": true,
-        "publisher": "Stirling PDF Inc.",
+        "publisher": "Y-Edit",
         "targets": [
-            "deb",
-            "rpm",
-            "dmg",
-            "msi"
+            "nsis"
         ],
         "icon": [
             "icons/icon.png",
@@ -42,7 +39,9 @@
         ],
         "resources": [
             "libs/*.jar",
-            "runtime/jre/**/*"
+            "runtime/jre/**/*",
+            "tools/qpdf/**/*",
+            "tools/tesseract/**/*"
         ],
         "fileAssociations": [
             {
@@ -63,13 +62,8 @@
             "certificateThumbprint": null,
             "digestAlgorithm": "sha256",
             "timestampUrl": "http://timestamp.digicert.com",
-            "wix": {
-                "fragmentPaths": [
-                    "windows/wix/provisioning.wxs"
-                ],
-                "componentGroupRefs": [
-                    "ProvisioningComponentGroup"
-                ]
+            "nsis": {
+                "installerIcon": "icons/icon.ico"
             }
         },
         "macOS": {
@@ -87,12 +81,5 @@
         "fs": {
             "requireLiteralLeadingDot": false
         },
-        "deep-link": {
-            "desktop": {
-                "schemes": [
-                    "stirlingpdf"
-                ]
-            }
-        }
     }
 }

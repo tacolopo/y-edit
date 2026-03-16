@@ -1,39 +1,31 @@
-use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum ConnectionMode {
-    SaaS,
-    SelfHosted,
+/// Simplified app state for Y-Edit desktop mode (local backend only)
+pub struct AppState {
+    pub backend_ready: AtomicBool,
+    pub backend_port: AtomicU16,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerConfig {
-    pub url: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionState {
-    pub mode: ConnectionMode,
-    pub server_config: Option<ServerConfig>,
-    pub lock_connection_mode: bool,
-}
-
-impl Default for ConnectionState {
+impl Default for AppState {
     fn default() -> Self {
         Self {
-            mode: ConnectionMode::SaaS,
-            server_config: None,
-            lock_connection_mode: false,
+            backend_ready: AtomicBool::new(false),
+            backend_port: AtomicU16::new(0),
         }
     }
 }
 
-pub struct AppConnectionState(pub Mutex<ConnectionState>);
+impl AppState {
+    pub fn set_port(&self, port: u16) {
+        self.backend_port.store(port, Ordering::SeqCst);
+        self.backend_ready.store(true, Ordering::SeqCst);
+    }
 
-impl Default for AppConnectionState {
-    fn default() -> Self {
-        Self(Mutex::new(ConnectionState::default()))
+    pub fn get_port(&self) -> Option<u16> {
+        if self.backend_ready.load(Ordering::SeqCst) {
+            Some(self.backend_port.load(Ordering::SeqCst))
+        } else {
+            None
+        }
     }
 }

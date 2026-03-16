@@ -38,14 +38,23 @@ public class PDFToFile {
             Pattern.compile("(!\\[.*?\\])\\((?!images/)([^/)][^)]*?)\\)");
     private final TempFileManager tempFileManager;
     private final RuntimePathConfig runtimePathConfig;
+    private final MsOfficeConverter msOfficeConverter;
 
     public PDFToFile(TempFileManager tempFileManager) {
-        this(tempFileManager, null);
+        this(tempFileManager, null, null);
     }
 
     public PDFToFile(TempFileManager tempFileManager, RuntimePathConfig runtimePathConfig) {
+        this(tempFileManager, runtimePathConfig, null);
+    }
+
+    public PDFToFile(
+            TempFileManager tempFileManager,
+            RuntimePathConfig runtimePathConfig,
+            MsOfficeConverter msOfficeConverter) {
         this.tempFileManager = tempFileManager;
         this.runtimePathConfig = runtimePathConfig;
+        this.msOfficeConverter = msOfficeConverter;
     }
 
     public ResponseEntity<byte[]> processPdfToMarkdown(MultipartFile inputFile)
@@ -239,147 +248,47 @@ public class PDFToFile {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        // Get the original PDF file name without the extension
         String originalPdfFileName = Filenames.toSimpleFileName(inputFile.getOriginalFilename());
-
         if (originalPdfFileName == null || originalPdfFileName.trim().isEmpty()) {
             originalPdfFileName = "output.pdf";
         }
-        // Assume file is pdf if no extension
         String pdfBaseName = originalPdfFileName;
         if (originalPdfFileName.contains(".")) {
             pdfBaseName = originalPdfFileName.substring(0, originalPdfFileName.lastIndexOf('.'));
         }
-        // Validate output format
+
+        // Map output formats — strip LibreOffice-specific suffixes
+        String cleanFormat = resolvePrimaryExtension(outputFormat);
         List<String> allowedFormats =
-                Arrays.asList("doc", "docx", "odt", "ppt", "pptx", "odp", "rtf", "xml", "txt:Text");
-        if (!allowedFormats.contains(outputFormat)) {
+                Arrays.asList("doc", "docx", "ppt", "pptx", "rtf", "txt");
+        if (!allowedFormats.contains(cleanFormat)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (msOfficeConverter == null || !msOfficeConverter.isAvailable()) {
+            throw new IOException(
+                    "MS Office is not available for PDF-to-Office conversion. "
+                            + "Please install Microsoft Office.");
         }
 
         byte[] fileBytes;
         String fileName;
 
-        Path libreOfficeProfile = null;
-        try (TempFile inputFileTemp = new TempFile(tempFileManager, ".pdf");
-                TempDirectory outputDirTemp = new TempDirectory(tempFileManager)) {
+        try (TempFile inputFileTemp = new TempFile(tempFileManager, ".pdf")) {
+            inputFile.transferTo(inputFileTemp.getFile());
 
-            Path tempInputFile = inputFileTemp.getPath();
-            Path tempOutputDir = outputDirTemp.getPath();
-            Path unoOutputFile =
-                    tempOutputDir.resolve(
-                            pdfBaseName + "." + resolvePrimaryExtension(outputFormat));
-
-            // Save the uploaded file to a temporary location
-            inputFile.transferTo(tempInputFile);
-
-            // Run the LibreOffice command
-            ProcessExecutorResult returnCode = null;
-            IOException unoconvertException = null;
-
-            if (isUnoConvertEnabled()) {
-                try {
-                    List<String> unoCommand =
-                            buildUnoConvertCommand(
-                                    tempInputFile, unoOutputFile, outputFormat, libreOfficeFilter);
-                    returnCode =
-                            ProcessExecutor.getInstance(ProcessExecutor.Processes.LIBRE_OFFICE)
-                                    .runCommandWithOutputHandling(unoCommand);
-                } catch (IOException e) {
-                    unoconvertException = e;
-                    log.warn(
-                            "Unoconvert command failed ({}). Falling back to soffice command.",
-                            e.getMessage());
-                }
-            }
-
-            if (returnCode == null) {
-                // Run the LibreOffice command as a fallback
-                libreOfficeProfile = Files.createTempDirectory("libreoffice_profile_");
-                List<String> command = new ArrayList<>();
-                command.add(runtimePathConfig.getSOfficePath());
-                command.add("-env:UserInstallation=" + libreOfficeProfile.toUri().toString());
-                command.add("--headless");
-                command.add("--nologo");
-                command.add("--infilter=" + libreOfficeFilter);
-                command.add("--convert-to");
-                command.add(outputFormat);
-                command.add("--outdir");
-                command.add(tempOutputDir.toString());
-                command.add(tempInputFile.toString());
-
-                try {
-                    returnCode =
-                            ProcessExecutor.getInstance(ProcessExecutor.Processes.LIBRE_OFFICE)
-                                    .runCommandWithOutputHandling(command);
-                } catch (IOException e) {
-                    if (unoconvertException != null) {
-                        e.addSuppressed(unoconvertException);
-                    }
-                    throw e;
-                }
-            }
-
-            // Get output files
-            List<File> outputFiles = Arrays.asList(tempOutputDir.toFile().listFiles());
-
-            if (outputFiles.size() == 1) {
-                // Return single output file
-                File outputFile = outputFiles.get(0);
-                if ("txt:Text".equals(outputFormat)) {
-                    outputFormat = "txt";
-                }
-                fileName = pdfBaseName + "." + outputFormat;
+            File outputFile =
+                    msOfficeConverter.convertFromPdf(inputFileTemp.getFile(), cleanFormat);
+            try {
+                fileName = pdfBaseName + "." + cleanFormat;
                 fileBytes = FileUtils.readFileToByteArray(outputFile);
-            } else {
-                // Return output files in a ZIP archive
-                fileName = pdfBaseName + "To" + outputFormat + ".zip";
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-                    for (File outputFile : outputFiles) {
-                        ZipEntry entry = new ZipEntry(outputFile.getName());
-                        zipOutputStream.putNextEntry(entry);
-                        try (FileInputStream fis = new FileInputStream(outputFile)) {
-                            IOUtils.copy(fis, zipOutputStream);
-                        } catch (IOException e) {
-                            log.error("Exception writing zip entry", e);
-                        }
-
-                        zipOutputStream.closeEntry();
-                    }
-                } catch (IOException e) {
-                    log.error("Exception writing zip", e);
-                }
-
-                fileBytes = byteArrayOutputStream.toByteArray();
-            }
-        } finally {
-            if (libreOfficeProfile != null) {
-                FileUtils.deleteQuietly(libreOfficeProfile.toFile());
+            } finally {
+                FileUtils.deleteQuietly(outputFile);
             }
         }
+
         return WebResponseUtils.bytesToWebResponse(
                 fileBytes, fileName, MediaType.APPLICATION_OCTET_STREAM);
-    }
-
-    private boolean isUnoConvertEnabled() {
-        return runtimePathConfig != null
-                && runtimePathConfig.getUnoConvertPath() != null
-                && !runtimePathConfig.getUnoConvertPath().isBlank();
-    }
-
-    private List<String> buildUnoConvertCommand(
-            Path inputFile, Path outputFile, String outputFormat, String libreOfficeFilter) {
-        List<String> command = new ArrayList<>();
-        command.add(runtimePathConfig.getUnoConvertPath());
-        command.add("--convert-to");
-        command.add(outputFormat);
-        if (libreOfficeFilter != null && !libreOfficeFilter.isBlank()) {
-            command.add("--input-filter=" + libreOfficeFilter);
-        }
-        command.add(inputFile.toString());
-        command.add(outputFile.toString());
-        return command;
     }
 
     private String resolvePrimaryExtension(String outputFormat) {
