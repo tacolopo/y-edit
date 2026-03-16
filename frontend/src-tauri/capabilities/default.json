@@ -1,42 +1,13 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "enables the default permissions",
+  "description": "Y-Edit default permissions",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
     "core:window:allow-destroy",
-    "http:default",
-    {
-      "identifier": "http:allow-fetch",
-      "allow": [
-        { "url": "http://*" },
-        { "url": "http://*:*" },
-        { "url": "https://*" },
-        { "url": "https://*:*" },
-        { "url": "http://192.168.*.*" },
-        { "url": "http://192.168.*.*:*" },
-        { "url": "https://192.168.*.*" },
-        { "url": "https://192.168.*.*:*" },
-        { "url": "http://10.*.*.*" },
-        { "url": "http://10.*.*.*:*" },
-        { "url": "https://10.*.*.*" },
-        { "url": "https://10.*.*.*:*" },
-        { "url": "http://172.16.*.*" },
-        { "url": "http://172.16.*.*:*" },
-        { "url": "https://172.16.*.*" },
-        { "url": "https://172.16.*.*:*" },
-        { "url": "http://localhost:*" },
-        { "url": "https://localhost:*" },
-        { "url": "http://127.0.0.1:*" },
-        { "url": "https://127.0.0.1:*" }
-      ]
-    },
-    "http:allow-fetch-cancel",
-    "http:allow-fetch-read-body",
-    "http:allow-fetch-send",
     {
       "identifier": "fs:allow-read-file",
       "allow": [{ "path": "**" }]
@@ -55,9 +26,13 @@
     "dialog:allow-save",
     "opener:default",
     "shell:allow-open",
+    "shell:allow-execute",
+    "shell:allow-spawn",
+    "shell:allow-stdin-write",
     "notification:allow-notify",
     "notification:allow-request-permission",
     "notification:allow-is-permission-granted",
+    "store:default",
     "window-state:allow-filename",
     "window-state:allow-restore-state",
     "window-state:allow-save-window-state"
