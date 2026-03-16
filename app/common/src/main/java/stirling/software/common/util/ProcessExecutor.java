@@ -329,8 +329,6 @@ public class ProcessExecutor {
         return new ProcessExecutorResult(exitCode, messages);
     }
 
-    }
-
     private void validateCommand(List<String> command) {
         if (command == null || command.isEmpty()) {
             throw new IllegalArgumentException("Command must not be empty");
