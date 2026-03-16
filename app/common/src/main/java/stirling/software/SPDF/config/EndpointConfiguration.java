@@ -426,6 +426,15 @@ public class EndpointConfiguration {
         addEndpointToGroup("CLI", "url-to-pdf");
         addEndpointToGroup("CLI", "pdf-to-rtf");
 
+        // python
+        addEndpointToGroup("Python", "extract-image-scans");
+        addEndpointToGroup("Python", "html-to-pdf");
+        addEndpointToGroup("Python", "url-to-pdf");
+        addEndpointToGroup("Python", "file-to-pdf");
+
+        // openCV
+        addEndpointToGroup("OpenCV", "extract-image-scans");
+
         // MsOffice (replaces LibreOffice — uses installed Microsoft Office via documents4j)
         addEndpointToGroup("MsOffice", "file-to-pdf");
         addEndpointToGroup("MsOffice", "pdf-to-word");
@@ -531,15 +540,22 @@ public class EndpointConfiguration {
         addEndpointAlternative("ocr-pdf", "tesseract");
         addEndpointAlternative("ocr-pdf", "OCRmyPDF");
 
-        // file-to-pdf uses MS Office
+        // file-to-pdf has multiple implementations
         addEndpointAlternative("file-to-pdf", "MsOffice");
 
-        // pdf-to-html and pdf-to-markdown use Pdftohtml
+        // pdf-to-html and pdf-to-markdown can use Pdftohtml
         addEndpointAlternative("pdf-to-html", "Pdftohtml");
         addEndpointAlternative("pdf-to-markdown", "Pdftohtml");
 
-        // markdown-to-pdf uses Java (no Weasyprint/Python in Y-Edit)
+        // markdown-to-pdf can use either Weasyprint or Java
+        addEndpointAlternative("markdown-to-pdf", "Weasyprint");
         addEndpointAlternative("markdown-to-pdf", "Java");
+
+        // Weasyprint dependent endpoints (bundled Python)
+        addEndpointToGroup("Weasyprint", "html-to-pdf");
+        addEndpointToGroup("Weasyprint", "url-to-pdf");
+        addEndpointToGroup("Weasyprint", "markdown-to-pdf");
+        addEndpointToGroup("Weasyprint", "eml-to-pdf");
 
         // veraPDF dependent endpoints
         addEndpointToGroup("veraPDF", "verify-pdf");

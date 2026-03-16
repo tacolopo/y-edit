@@ -22,7 +22,6 @@ import stirling.software.common.model.ApplicationProperties.CustomPaths.Operatio
 import stirling.software.common.model.ApplicationProperties.CustomPaths.Pipeline;
 import stirling.software.common.model.ApplicationProperties.System;
 import stirling.software.common.util.ProcessExecutor;
-import stirling.software.common.util.UnoServerPool;
 
 @Slf4j
 @Configuration
@@ -137,7 +136,6 @@ public class RuntimePathConfig {
             libreOfficeLimit = processExecutor.getSessionLimit().getLibreOfficeSessionLimit();
         }
         this.unoServerEndpoints = buildUnoServerEndpoints(processExecutor, libreOfficeLimit);
-        ProcessExecutor.setUnoServerPool(new UnoServerPool(this.unoServerEndpoints));
     }
 
     private String resolvePath(String defaultPath, String customPath) {

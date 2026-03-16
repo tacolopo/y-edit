@@ -29,7 +29,6 @@ public class ProcessExecutor {
 
     private static final Map<Processes, ProcessExecutor> instances = new ConcurrentHashMap<>();
     private static ApplicationProperties applicationProperties = new ApplicationProperties();
-    private static volatile UnoServerPool unoServerPool;
     private final Semaphore semaphore;
     private final boolean liveUpdates;
     private long timeoutDuration;
@@ -185,10 +184,6 @@ public class ProcessExecutor {
                 });
     }
 
-    public static void setUnoServerPool(UnoServerPool pool) {
-        unoServerPool = pool;
-    }
-
     public ProcessExecutorResult runCommandWithOutputHandling(List<String> command)
             throws IOException, InterruptedException {
         return runCommandWithOutputHandling(command, null);
@@ -198,17 +193,8 @@ public class ProcessExecutor {
             List<String> command, File workingDirectory) throws IOException, InterruptedException {
         String messages = "";
         int exitCode = 1;
-        UnoServerPool.UnoServerLease unoLease = null;
-        boolean useSemaphore = true;
         List<String> commandToRun = command;
-        if (shouldUseUnoServerPool(command)) {
-            unoLease = unoServerPool.acquireEndpoint();
-            commandToRun = applyUnoServerEndpoint(command, unoLease.getEndpoint());
-            useSemaphore = false;
-        }
-        if (useSemaphore) {
-            semaphore.acquire();
-        }
+        semaphore.acquire();
         try {
 
             validateCommand(commandToRun);
@@ -338,144 +324,11 @@ public class ProcessExecutor {
                 }
             }
         } finally {
-            if (useSemaphore) {
-                semaphore.release();
-            }
-            if (unoLease != null) {
-                unoLease.close();
-            }
+            semaphore.release();
         }
         return new ProcessExecutorResult(exitCode, messages);
     }
 
-    private boolean shouldUseUnoServerPool(List<String> command) {
-        if (processType != Processes.LIBRE_OFFICE || unoServerPool == null) {
-            return false;
-        }
-        if (unoServerPool.isEmpty()) {
-            return false;
-        }
-        if (command == null || command.isEmpty()) {
-            return false;
-        }
-
-        // Check if this is a UNO conversion by looking for unoconvert executable
-        String executable = command.get(0);
-        if (executable != null) {
-            // Extract basename from path for matching
-            String basename = executable;
-            int lastSlash = Math.max(executable.lastIndexOf('/'), executable.lastIndexOf('\\'));
-            if (lastSlash >= 0) {
-                basename = executable.substring(lastSlash + 1);
-            }
-            // Strip .exe extension on Windows
-            if (basename.toLowerCase(java.util.Locale.ROOT).endsWith(".exe")) {
-                basename = basename.substring(0, basename.length() - 4);
-            }
-            // Match common unoconvert variants (but NOT soffice)
-            String lowerBasename = basename.toLowerCase(java.util.Locale.ROOT);
-            if (lowerBasename.contains("unoconvert") || "unoconv".equals(lowerBasename)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private List<String> applyUnoServerEndpoint(
-            List<String> command,
-            ApplicationProperties.ProcessExecutor.UnoServerEndpoint endpoint) {
-        if (endpoint == null || command == null || command.isEmpty()) {
-            return command;
-        }
-        List<String> updated = stripUnoEndpointArgs(command);
-        String host = endpoint.getHost();
-        int port = endpoint.getPort();
-        String hostLocation = endpoint.getHostLocation();
-        String protocol = endpoint.getProtocol();
-
-        // Normalize and validate host
-        if (host == null || host.isBlank()) {
-            host = "127.0.0.1";
-        }
-
-        // Normalize and validate port
-        if (port <= 0) {
-            port = 2003;
-        }
-
-        // Normalize and validate hostLocation (only auto|local|remote allowed)
-        if (hostLocation == null) {
-            hostLocation = "auto";
-        } else {
-            hostLocation = hostLocation.trim().toLowerCase(java.util.Locale.ROOT);
-            if (!Set.of("auto", "local", "remote").contains(hostLocation)) {
-                log.warn(
-                        "Invalid hostLocation '{}' for endpoint {}:{}, defaulting to 'auto'",
-                        hostLocation,
-                        host,
-                        port);
-                hostLocation = "auto";
-            }
-        }
-
-        // Normalize and validate protocol (only http|https allowed)
-        if (protocol == null) {
-            protocol = "http";
-        } else {
-            protocol = protocol.trim().toLowerCase(java.util.Locale.ROOT);
-            if (!Set.of("http", "https").contains(protocol)) {
-                log.warn(
-                        "Invalid protocol '{}' for endpoint {}:{}, defaulting to 'http'",
-                        protocol,
-                        host,
-                        port);
-                protocol = "http";
-            }
-        }
-
-        int insertIndex = Math.min(1, updated.size());
-        updated.add(insertIndex++, "--host");
-        updated.add(insertIndex++, host);
-        updated.add(insertIndex++, "--port");
-        updated.add(insertIndex++, String.valueOf(port));
-
-        // Only inject --host-location if non-default (for compatibility with older unoconvert)
-        if (!"auto".equals(hostLocation)) {
-            updated.add(insertIndex++, "--host-location");
-            updated.add(insertIndex++, hostLocation);
-        }
-
-        // Only inject --protocol if non-default (for compatibility with older unoconvert)
-        if (!"http".equals(protocol)) {
-            updated.add(insertIndex++, "--protocol");
-            updated.add(insertIndex, protocol);
-        }
-
-        return updated;
-    }
-
-    private List<String> stripUnoEndpointArgs(List<String> command) {
-        List<String> stripped = new ArrayList<>(command.size());
-        for (int i = 0; i < command.size(); i++) {
-            String arg = command.get(i);
-            if ("--host".equals(arg)
-                    || "--port".equals(arg)
-                    || "--host-location".equals(arg)
-                    || "--protocol".equals(arg)) {
-                i++;
-                continue;
-            }
-            if (arg != null
-                    && (arg.startsWith("--host=")
-                            || arg.startsWith("--port=")
-                            || arg.startsWith("--host-location=")
-                            || arg.startsWith("--protocol="))) {
-                continue;
-            }
-            stripped.add(arg);
-        }
-        return stripped;
     }
 
     private void validateCommand(List<String> command) {
