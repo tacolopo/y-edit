@@ -1,0 +1,159 @@
+name: Build Y-Edit Windows Installer
+
+on:
+  push:
+    branches: [y-edit-fork]
+    tags: ['v*']
+  pull_request:
+    branches: [y-edit-fork]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '22'
+  RUST_VERSION: 'stable'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            frontend/src-tauri/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      # ── Build Spring Boot JAR ──────────────────────────────────────
+      - name: Build Spring Boot JAR
+        run: ./gradlew :stirling-pdf:bootJar -x test
+        shell: bash
+
+      - name: Copy JAR to Tauri libs
+        shell: bash
+        run: |
+          mkdir -p frontend/src-tauri/libs
+          cp app/core/build/libs/stirling-pdf-*.jar frontend/src-tauri/libs/
+
+      # ── Create custom JRE with JLink ───────────────────────────────
+      - name: Create minimal JRE with JLink
+        shell: bash
+        run: |
+          JAVA_HOME_DIR=$(dirname $(dirname $(which java)))
+          jlink --no-header-files --no-man-pages --compress=zip-6 \
+            --add-modules java.base,java.compiler,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.transaction.xa,java.xml,java.xml.crypto,jdk.crypto.ec,jdk.crypto.cryptoki,jdk.unsupported \
+            --output frontend/src-tauri/runtime/jre
+
+      # ── Bundle QPDF ────────────────────────────────────────────────
+      - name: Bundle QPDF
+        shell: bash
+        run: |
+          mkdir -p frontend/src-tauri/tools/qpdf
+          curl -L -o qpdf.zip "https://github.com/qpdf/qpdf/releases/download/v11.9.1/qpdf-11.9.1-msvc64.zip"
+          unzip -q qpdf.zip -d frontend/src-tauri/tools/qpdf/
+          # Flatten: move contents up if nested
+          if [ -d "frontend/src-tauri/tools/qpdf/qpdf-11.9.1" ]; then
+            mv frontend/src-tauri/tools/qpdf/qpdf-11.9.1/* frontend/src-tauri/tools/qpdf/
+            rmdir frontend/src-tauri/tools/qpdf/qpdf-11.9.1
+          fi
+
+      # ── Bundle Tesseract OCR ───────────────────────────────────────
+      - name: Bundle Tesseract OCR
+        shell: bash
+        run: |
+          mkdir -p frontend/src-tauri/tools/tesseract
+          # Use UB-Mannheim Tesseract portable build for Windows
+          curl -L -o tesseract.zip "https://github.com/UB-Mannheim/tesseract/releases/download/v5.5.0.20241111/tesseract-ocr-w64-setup-5.5.0.20241111.exe"
+          # Note: For CI, we'd extract the portable version or use choco
+          choco install tesseract --no-progress -y
+          cp -r "C:/Program Files/Tesseract-OCR/"* frontend/src-tauri/tools/tesseract/
+
+      # ── Bundle Ghostscript ─────────────────────────────────────────
+      - name: Bundle Ghostscript
+        shell: bash
+        run: |
+          mkdir -p frontend/src-tauri/tools/ghostscript
+          choco install ghostscript --no-progress -y
+          cp -r "C:/Program Files/gs/"* frontend/src-tauri/tools/ghostscript/
+
+      # ── Bundle Embedded Python + packages ──────────────────────────
+      - name: Bundle Embedded Python
+        shell: pwsh
+        run: |
+          $pythonDir = "frontend/src-tauri/tools/python"
+          New-Item -ItemType Directory -Force -Path $pythonDir
+
+          # Download Python embeddable package (Windows x64)
+          $pythonVersion = "3.12.8"
+          Invoke-WebRequest -Uri "https://www.python.org/ftp/python/$pythonVersion/python-$pythonVersion-embed-amd64.zip" -OutFile python-embed.zip
+          Expand-Archive -Path python-embed.zip -DestinationPath $pythonDir -Force
+
+          # Enable pip in embedded Python (uncomment import site in ._pth file)
+          $pthFile = Get-ChildItem "$pythonDir/python*._pth" | Select-Object -First 1
+          if ($pthFile) {
+            (Get-Content $pthFile.FullName) -replace '#import site', 'import site' | Set-Content $pthFile.FullName
+          }
+
+          # Install pip
+          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$pythonDir/get-pip.py"
+          & "$pythonDir/python.exe" "$pythonDir/get-pip.py" --no-warn-script-location
+
+          # Install required Python packages
+          & "$pythonDir/python.exe" -m pip install --no-warn-script-location `
+            weasyprint `
+            opencv-python-headless `
+            ocrmypdf `
+            --target "$pythonDir/Lib/site-packages"
+
+      # ── Install frontend deps & build ──────────────────────────────
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Tauri application
+        working-directory: frontend
+        run: npx tauri build --bundles nsis
+        env:
+          # Don't code-sign in CI unless configured
+          TAURI_SIGNING_PRIVATE_KEY: ""
+
+      # ── Upload artifacts ───────────────────────────────────────────
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: y-edit-windows-installer
+          path: frontend/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error

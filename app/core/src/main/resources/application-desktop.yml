@@ -1,0 +1,15 @@
+# Y-Edit Desktop Mode Configuration
+# Activated when running inside the Tauri desktop shell
+
+server:
+  port: 0  # Let OS assign an available port
+
+security:
+  enableLogin: false
+  csrfDisabled: true
+
+system:
+  enableAnalytics: false
+
+# Tool paths relative to the Tauri resource directory
+# These are overridden at startup by the Tauri shell via environment variables

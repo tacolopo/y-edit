@@ -41,7 +41,9 @@
             "libs/*.jar",
             "runtime/jre/**/*",
             "tools/qpdf/**/*",
-            "tools/tesseract/**/*"
+            "tools/tesseract/**/*",
+            "tools/ghostscript/**/*",
+            "tools/python/**/*"
         ],
         "fileAssociations": [
             {

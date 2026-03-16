@@ -166,7 +166,7 @@ fn copy_dir_recursive(src: &Path, dest: &Path) -> std::io::Result<()> {
 }
 
 // Create, configure and run the Java command to run Stirling-PDF JAR
-fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &PathBuf) -> Result<(), String> {
+fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &PathBuf, resource_dir: &PathBuf) -> Result<(), String> {
     // Get platform-specific application data directory for Tauri mode
     let app_data_dir = app_data_dir();
 
@@ -252,15 +252,38 @@ fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &
         }
     }
 
+    // Build PATH with bundled tools so the Java backend can find them
+    let tools_dir = resource_dir.join("tools");
+    let qpdf_bin = tools_dir.join("qpdf").join("bin");
+    let tesseract_dir = tools_dir.join("tesseract");
+    let ghostscript_bin = tools_dir.join("ghostscript").join("bin");
+    let python_dir = tools_dir.join("python");
+    let python_scripts = python_dir.join("Scripts");
+
+    let system_path = std::env::var("PATH").unwrap_or_default();
+    let tools_path = format!(
+        "{};{};{};{};{};{}",
+        normalize_path(&qpdf_bin).display(),
+        normalize_path(&tesseract_dir).display(),
+        normalize_path(&ghostscript_bin).display(),
+        normalize_path(&python_dir).display(),
+        normalize_path(&python_scripts).display(),
+        system_path
+    );
+
+    let tessdata_path = tesseract_dir.join("tessdata");
+
     let sidecar_command = app
         .shell()
         .command(java_path.to_str().unwrap())
         .args(java_options)
-        .current_dir(&work_dir)  // Set working directory to writable location
+        .current_dir(&work_dir)
+        .env("PATH", &tools_path)
         .env("TAURI_PARENT_PID", std::process::id().to_string())
         .env("STIRLING_PDF_CONFIG_DIR", config_dir.to_str().unwrap())
         .env("STIRLING_PDF_LOG_DIR", log_dir.to_str().unwrap())
-        .env("STIRLING_PDF_WORK_DIR", work_dir.to_str().unwrap());
+        .env("STIRLING_PDF_WORK_DIR", work_dir.to_str().unwrap())
+        .env("TESSDATA_PREFIX", normalize_path(&tessdata_path).to_str().unwrap_or(""));
 
     add_log("⚙️ Starting backend with bundled JRE...".to_string());
 
@@ -417,7 +440,7 @@ pub async fn start_backend(
     add_log(format!("📦 Normalized Java path: {:?}", normalized_java_path));
 
     // Create and start the Java command
-    run_stirling_pdf_jar(&app, &normalized_java_path, &normalized_jar_path).map_err(|e| {
+    run_stirling_pdf_jar(&app, &normalized_java_path, &normalized_jar_path, &resource_dir).map_err(|e| {
         reset_starting_flag();
         e
     })?;
