@@ -96,11 +96,11 @@ const AddFileCard = ({
 
         {/* Main content area */}
         <div className={styles.addFileContent}>
-          {/* Stirling PDF Branding */}
+          {/* Y-Edit Branding */}
           <Group gap="xs" align="center">
             <img
               src={colorScheme === 'dark' ? wordmark.white : wordmark.grey}
-              alt="Stirling PDF"
+              alt="Y-Edit"
               style={{ height: '2.2rem', width: 'auto' }}
             />
           </Group>

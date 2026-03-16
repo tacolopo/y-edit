@@ -104,7 +104,7 @@ export default function HomePage() {
     navigationState.workbench,
   ]);
 
-  const brandAltText = t("home.mobile.brandAlt", "Stirling PDF logo");
+  const brandAltText = t("home.mobile.brandAlt", "Y-Edit logo");
   const brandIconSrc = useLogoPath();
   const { wordmark } = useLogoAssets();
   const brandTextSrc = colorScheme === "dark" ? wordmark.white : wordmark.black;
@@ -191,12 +191,12 @@ export default function HomePage() {
   const baseUrl = useBaseUrl();
 
   // Update document meta when tool changes
-  const appName = config?.appNameNavbar || 'Stirling PDF';
+  const appName = config?.appNameNavbar || 'Y-Edit';
   useDocumentMeta({
     title: selectedTool ? `${selectedTool.name} - ${appName}` : appName,
-    description: selectedTool?.description || t('app.description', 'The Free Adobe Acrobat alternative (10M+ Downloads)'),
+    description: selectedTool?.description || t('app.description', 'Y-Edit PDF Editor'),
     ogTitle: selectedTool ? `${selectedTool.name} - ${appName}` : appName,
-    ogDescription: selectedTool?.description || t('app.description', 'The Free Adobe Acrobat alternative (10M+ Downloads)'),
+    ogDescription: selectedTool?.description || t('app.description', 'Y-Edit PDF Editor'),
     ogImage: selectedToolKey ? `${baseUrl}/og_images/${selectedToolKey}.png` : `${baseUrl}/og_images/home.png`,
     ogUrl: selectedTool ? `${baseUrl}${window.location.pathname}` : baseUrl
   });

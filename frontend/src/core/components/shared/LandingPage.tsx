@@ -124,7 +124,7 @@ const LandingPage = () => {
           >
             <img
               src={logoPath}
-              alt="Stirling PDF Logo"
+              alt="Y-Edit Logo"
               style={{
                 height: 'auto',
                 pointerEvents: 'none',
@@ -147,13 +147,9 @@ const LandingPage = () => {
 
           {/* Centered content container */}
           <div className="flex flex-col items-center gap-4 flex-none w-full">
-            {/* Stirling PDF Branding */}
+            {/* Y-Edit Branding */}
             <Group gap="xs" align="center">
-              <img
-                src={colorScheme === 'dark' ? wordmark.white : wordmark.grey}
-                alt="Stirling PDF"
-                style={{ height: '2.2rem', width: 'auto' }}
-              />
+              <Text fw={700} size="xl">Y-Edit</Text>
             </Group>
 
             {/* Add Files + Native Upload Buttons */}
