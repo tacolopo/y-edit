@@ -92,32 +92,47 @@ jobs:
 
       # ── Bundle Tesseract OCR ───────────────────────────────────────
       - name: Bundle Tesseract OCR
-        shell: pwsh
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          New-Item -ItemType Directory -Force -Path frontend/src-tauri/tools/tesseract
-          # Download Tesseract portable zip from UB-Mannheim
-          Invoke-WebRequest -Uri "https://github.com/UB-Mannheim/tesseract/releases/download/v5.5.0.20241111/tesseract-ocr-w64-setup-5.5.0.20241111.exe" -OutFile tesseract-setup.exe
-          # Silent install to a local directory
-          Start-Process -Wait -FilePath .\tesseract-setup.exe -ArgumentList '/S', '/D=D:\tesseract'
-          Copy-Item -Recurse -Force "D:\tesseract\*" frontend/src-tauri/tools/tesseract/
+          mkdir -p frontend/src-tauri/tools/tesseract
+          # Use gh CLI (authenticated) to download from UB-Mannheim releases
+          gh release download v5.5.0.20241111 \
+            --repo UB-Mannheim/tesseract \
+            --pattern "tesseract-ocr-w64-setup-5.5.0.20241111.exe" \
+            --dir .
+          # Silent NSIS install to custom path
+          ./tesseract-ocr-w64-setup-5.5.0.20241111.exe /S /D='D:\tesseract'
+          # Wait for installer to finish
+          sleep 10
+          cp -r /d/tesseract/* frontend/src-tauri/tools/tesseract/ || true
+          # Verify
+          ls frontend/src-tauri/tools/tesseract/
 
       # ── Bundle Ghostscript ─────────────────────────────────────────
       - name: Bundle Ghostscript
-        shell: pwsh
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          New-Item -ItemType Directory -Force -Path frontend/src-tauri/tools/ghostscript
-          # Download Ghostscript portable directly from GitHub releases
-          $gsVersion = "10.04.0"
-          Invoke-WebRequest -Uri "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10040/gs10040w64.exe" -OutFile gs-setup.exe
-          # Silent install to a local directory
-          Start-Process -Wait -FilePath .\gs-setup.exe -ArgumentList '/S', '/D=D:\ghostscript'
-          # Copy the versioned subdirectory contents
-          $gsDir = Get-ChildItem "D:\ghostscript" -Directory | Select-Object -First 1
-          if ($gsDir) {
-            Copy-Item -Recurse -Force "$($gsDir.FullName)\*" frontend/src-tauri/tools/ghostscript/
-          } else {
-            Copy-Item -Recurse -Force "D:\ghostscript\*" frontend/src-tauri/tools/ghostscript/
-          }
+          mkdir -p frontend/src-tauri/tools/ghostscript
+          # Use gh CLI (authenticated) to download Ghostscript
+          gh release download gs10040 \
+            --repo ArtifexSoftware/ghostpdl-downloads \
+            --pattern "gs10040w64.exe" \
+            --dir .
+          # Silent install
+          ./gs10040w64.exe /S /D='D:\ghostscript'
+          sleep 10
+          # Ghostscript installs into a versioned subdir
+          if [ -d "/d/ghostscript/gs10.04.0" ]; then
+            cp -r /d/ghostscript/gs10.04.0/* frontend/src-tauri/tools/ghostscript/
+          else
+            cp -r /d/ghostscript/* frontend/src-tauri/tools/ghostscript/
+          fi
+          # Verify
+          ls frontend/src-tauri/tools/ghostscript/
 
       # ── Bundle Embedded Python + packages ──────────────────────────
       - name: Bundle Embedded Python
