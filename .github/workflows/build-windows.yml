@@ -97,17 +97,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p frontend/src-tauri/tools/tesseract
-          # Use gh CLI (authenticated) to download from UB-Mannheim releases
           gh release download v5.4.0.20240606 \
             --repo UB-Mannheim/tesseract \
             --pattern "tesseract-ocr-w64-setup-5.4.0.20240606.exe" \
             --dir .
-          # Silent NSIS install to custom path
-          ./tesseract-ocr-w64-setup-5.4.0.20240606.exe /S /D='D:\tesseract'
-          # Wait for installer to finish
-          sleep 10
-          cp -r /d/tesseract/* frontend/src-tauri/tools/tesseract/ || true
-          # Verify
+          # Extract NSIS installer with 7zip (no GUI needed, no hanging)
+          7z x tesseract-ocr-w64-setup-5.4.0.20240606.exe -ofrontend/src-tauri/tools/tesseract -y
           ls frontend/src-tauri/tools/tesseract/
 
       # ── Bundle Ghostscript ─────────────────────────────────────────
@@ -117,21 +112,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p frontend/src-tauri/tools/ghostscript
-          # Use gh CLI (authenticated) to download Ghostscript
           gh release download gs10070 \
             --repo ArtifexSoftware/ghostpdl-downloads \
             --pattern "gs10070w64.exe" \
             --dir .
-          # Silent install
-          ./gs10070w64.exe /S /D='D:\ghostscript'
-          sleep 10
-          # Ghostscript installs into a versioned subdir
-          if [ -d "/d/ghostscript/gs10.07.0" ]; then
-            cp -r /d/ghostscript/gs10.07.0/* frontend/src-tauri/tools/ghostscript/
-          else
-            cp -r /d/ghostscript/* frontend/src-tauri/tools/ghostscript/
-          fi
-          # Verify
+          # Extract NSIS installer with 7zip
+          7z x gs10070w64.exe -ofrontend/src-tauri/tools/ghostscript -y
           ls frontend/src-tauri/tools/ghostscript/
 
       # ── Bundle Embedded Python + packages ──────────────────────────
