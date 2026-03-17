@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BASE_PATH } from '@app/constants/app';
+import { getApiBaseUrl } from '@app/services/apiClientConfig';
 
 type BackendStatus = 'up' | 'starting' | 'down';
 
@@ -11,7 +11,7 @@ interface BackendProbeState {
 
 /**
  * Lightweight backend probe that avoids global axios interceptors.
- * Used on auth screens to decide whether to show login, anonymous mode, or a backend-starting message.
+ * Uses getApiBaseUrl() to resolve the dynamic backend port in desktop mode.
  */
 export function useBackendProbe() {
   const [state, setState] = useState<BackendProbeState>({
@@ -21,8 +21,8 @@ export function useBackendProbe() {
   });
 
   const probe = useCallback(async () => {
-    const statusUrl = `${BASE_PATH || ''}/api/v1/info/status`;
-    const loginUrl = `${BASE_PATH || ''}/api/v1/proprietary/ui-data/login`;
+    const base = getApiBaseUrl().replace(/\/$/, '');
+    const statusUrl = `${base}/api/v1/info/status`;
 
     const next: BackendProbeState = {
       status: 'starting',
@@ -36,6 +36,8 @@ export function useBackendProbe() {
         const data = await res.json().catch(() => null);
         if (data && data.status === 'UP') {
           next.status = 'up';
+          // Desktop mode: login is always disabled
+          next.loginDisabled = true;
           setState(next);
           return next;
         }
@@ -47,28 +49,6 @@ export function useBackendProbe() {
       }
     } catch {
       next.status = 'down';
-    }
-
-    // Fallback: proprietary login endpoint to detect disabled login and backend availability
-    try {
-      const res = await fetch(loginUrl, { method: 'GET', cache: 'no-store' });
-      if (res.ok) {
-        next.status = 'up';
-        const data = await res.json().catch(() => null);
-        if (data && data.enableLogin === false) {
-          next.loginDisabled = true;
-        }
-      } else if (res.status === 404) {
-        // Endpoint missing usually means login disabled
-        next.status = 'up';
-        next.loginDisabled = true;
-      } else if (res.status === 503) {
-        next.status = 'starting';
-      } else {
-        next.status = 'down';
-      }
-    } catch {
-      // keep previous inferred state (down/starting)
     }
 
     setState(next);
