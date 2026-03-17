@@ -74,15 +74,15 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       return (
         <Stack align="center" justify="center" style={{ minHeight: '200px', padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
           <Text size="lg" fw={500} c="red">Something went wrong</Text>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {this.state.error && (
             <>
               <Text size="sm" c="dimmed" style={{ textAlign: 'center', fontFamily: 'monospace', marginTop: '1rem' }}>
                 {this.state.error.message}
               </Text>
               {this.state.error.stack && (
-                <details style={{ marginTop: '1rem', width: '100%' }}>
+                <details style={{ marginTop: '1rem', width: '100%' }} open>
                   <summary style={{ cursor: 'pointer', marginBottom: '0.5rem' }}>
-                    <Text size="sm" component="span">Show stack trace</Text>
+                    <Text size="sm" component="span">Stack trace</Text>
                   </summary>
                   <pre style={{
                     fontSize: '0.75rem',
@@ -90,7 +90,10 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
                     backgroundColor: '#f5f5f5',
                     padding: '1rem',
                     borderRadius: '4px',
-                    maxHeight: '300px'
+                    maxHeight: '400px',
+                    color: '#333',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
                   }}>
                     {this.state.error.stack}
                   </pre>

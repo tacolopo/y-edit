@@ -1,3 +1,19 @@
+// Global error handler — catches errors outside React tree and displays them on screen
+window.onerror = (msg, source, line, col, error) => {
+  const el = document.getElementById('root');
+  if (el) {
+    el.innerHTML = `<div style="padding:2rem;font-family:monospace;color:red">
+      <h2>Y-Edit Startup Error</h2>
+      <p><b>${msg}</b></p>
+      <p>Source: ${source}:${line}:${col}</p>
+      <pre style="white-space:pre-wrap;max-height:400px;overflow:auto;background:#111;color:#f88;padding:1rem;border-radius:4px">${error?.stack || 'no stack'}</pre>
+    </div>`;
+  }
+};
+window.onunhandledrejection = (event) => {
+  console.error('Unhandled rejection:', event.reason);
+};
+
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '../vite-env.d.ts'; // eslint-disable-line no-restricted-imports -- Outside app paths
