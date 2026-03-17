@@ -67,11 +67,9 @@ const FileSourceButtons: React.FC<FileSourceButtonsProps> = ({
     }
   };
 
-  // Determine visibility of Google Drive button
-  const shouldHideGoogleDrive = !isGoogleDriveEnabled && config?.hideDisabledToolsGoogleDrive;
-
-  // Determine visibility of Mobile QR Scanner button
-  const shouldHideMobileQR = !isMobileUploadEnabled && config?.hideDisabledToolsMobileQRScanner;
+  // Y-Edit: always hide cloud/mobile — local desktop app only
+  const shouldHideGoogleDrive = true;
+  const shouldHideMobileQR = true;
 
   const buttonProps = {
     variant: (source: string) => activeSource === source ? 'filled' : 'subtle',
