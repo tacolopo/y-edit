@@ -123,7 +123,8 @@ public class CertSignController {
             String name,
             String location,
             String reason,
-            Boolean showLogo) {
+            Boolean showLogo)
+            throws Exception {
         try (PDDocument doc = pdfDocumentFactory.load(input)) {
             PDSignature signature = new PDSignature();
             signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
@@ -145,8 +146,6 @@ public class CertSignController {
                 doc.addSignature(signature, instance);
                 doc.saveIncremental(output);
             }
-        } catch (Exception e) {
-            ExceptionUtils.logException("PDF signing", e);
         }
     }
 

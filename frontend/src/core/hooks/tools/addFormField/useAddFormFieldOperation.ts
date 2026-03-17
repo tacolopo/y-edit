@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useToolOperation, ToolType } from '@app/hooks/tools/shared/useToolOperation';
 import { createStandardErrorHandler } from '@app/utils/toolErrorHandler';
+import { BaseParameters } from '@app/types/parameters';
+import { useBaseParameters, BaseParametersHook } from '@app/hooks/tools/shared/useBaseParameters';
 
-export interface AddTextFieldParameters {
+export interface AddTextFieldParameters extends BaseParameters {
   pageNumber: number;
   x: number;
   y: number;
@@ -13,7 +15,7 @@ export interface AddTextFieldParameters {
   fontSize: number;
 }
 
-export interface AddSignatureFieldParameters {
+export interface AddSignatureFieldParameters extends BaseParameters {
   pageNumber: number;
   x: number;
   y: number;
@@ -68,12 +70,28 @@ export const buildAddSignatureFieldFormData = (parameters: AddSignatureFieldPara
   return formData;
 };
 
+export const useAddTextFieldParameters = (): BaseParametersHook<AddTextFieldParameters> => {
+  return useBaseParameters({
+    defaultParameters: defaultTextFieldParameters,
+    endpointName: 'add-text-field',
+    validateFn: () => true,
+  });
+};
+
+export const useAddSignatureFieldParameters = (): BaseParametersHook<AddSignatureFieldParameters> => {
+  return useBaseParameters({
+    defaultParameters: defaultSignatureFieldParameters,
+    endpointName: 'add-signature-field',
+    validateFn: () => true,
+  });
+};
+
 export const useAddTextFieldOperation = () => {
   const { t } = useTranslation();
 
   return useToolOperation<AddTextFieldParameters>({
     toolType: ToolType.singleFile,
-    operationType: 'addTextField' as any,
+    operationType: 'addFormField' as any,
     endpoint: '/api/v1/form/add-text-field',
     buildFormData: buildAddTextFieldFormData,
     defaultParameters: defaultTextFieldParameters,
@@ -88,7 +106,7 @@ export const useAddSignatureFieldOperation = () => {
 
   return useToolOperation<AddSignatureFieldParameters>({
     toolType: ToolType.singleFile,
-    operationType: 'addSignatureField' as any,
+    operationType: 'addFormField' as any,
     endpoint: '/api/v1/form/add-signature-field',
     buildFormData: buildAddSignatureFieldFormData,
     defaultParameters: defaultSignatureFieldParameters,

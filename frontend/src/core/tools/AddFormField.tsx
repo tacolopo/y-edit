@@ -1,53 +1,36 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NumberInput, TextInput, Select, Stack, Group } from "@mantine/core";
 import { createToolFlow } from "@app/components/tools/shared/createToolFlow";
-import { useAddTextFieldOperation, useAddSignatureFieldOperation } from "@app/hooks/tools/addFormField/useAddFormFieldOperation";
-import type { AddTextFieldParameters, AddSignatureFieldParameters } from "@app/hooks/tools/addFormField/useAddFormFieldOperation";
-import { defaultTextFieldParameters, defaultSignatureFieldParameters } from "@app/hooks/tools/addFormField/useAddFormFieldOperation";
+import {
+  useAddTextFieldParameters,
+  useAddSignatureFieldParameters,
+  useAddTextFieldOperation,
+  useAddSignatureFieldOperation,
+} from "@app/hooks/tools/addFormField/useAddFormFieldOperation";
 import { useBaseTool } from "@app/hooks/tools/shared/useBaseTool";
 import { BaseToolProps, ToolComponent } from "@app/types/tool";
 
-type FieldType = 'text' | 'signature';
-
 const AddFormField = (props: BaseToolProps) => {
   const { t } = useTranslation();
-  const [fieldType, setFieldType] = useState<FieldType>('text');
-
-  const [textParams, setTextParams] = useState<AddTextFieldParameters>(defaultTextFieldParameters);
-  const [sigParams, setSigParams] = useState<AddSignatureFieldParameters>(defaultSignatureFieldParameters);
-
-  const useTextFieldParams = useCallback(() => ({
-    parameters: textParams,
-    updateParameter: <K extends keyof AddTextFieldParameters>(key: K, value: AddTextFieldParameters[K]) => {
-      setTextParams(prev => ({ ...prev, [key]: value }));
-    },
-    validateParameters: () => true,
-  }), [textParams]);
-
-  const useSigFieldParams = useCallback(() => ({
-    parameters: sigParams,
-    updateParameter: <K extends keyof AddSignatureFieldParameters>(key: K, value: AddSignatureFieldParameters[K]) => {
-      setSigParams(prev => ({ ...prev, [key]: value }));
-    },
-    validateParameters: () => true,
-  }), [sigParams]);
+  const [fieldType, setFieldType] = useState<'text' | 'signature'>('signature');
 
   const textBase = useBaseTool(
-    'addTextField' as any,
-    useTextFieldParams,
+    'addFormField' as any,
+    useAddTextFieldParameters,
     useAddTextFieldOperation,
     props
   );
 
   const sigBase = useBaseTool(
-    'addSignatureField' as any,
-    useSigFieldParams,
+    'addFormField' as any,
+    useAddSignatureFieldParameters,
     useAddSignatureFieldOperation,
     props
   );
 
   const base = fieldType === 'text' ? textBase : sigBase;
+  const params = fieldType === 'text' ? textBase.params : sigBase.params;
 
   return createToolFlow({
     files: {
@@ -64,74 +47,50 @@ const AddFormField = (props: BaseToolProps) => {
             <Select
               label={t("addFormField.fieldType", "Field Type")}
               data={[
-                { value: 'text', label: t("addFormField.textField", "Text Field") },
                 { value: 'signature', label: t("addFormField.signatureField", "Signature Field") },
+                { value: 'text', label: t("addFormField.textField", "Text Field") },
               ]}
               value={fieldType}
-              onChange={(val) => setFieldType((val as FieldType) || 'text')}
+              onChange={(val) => setFieldType((val as 'text' | 'signature') || 'signature')}
             />
 
             <Group grow>
               <NumberInput
                 label={t("addFormField.page", "Page")}
-                value={fieldType === 'text' ? textParams.pageNumber : sigParams.pageNumber}
-                onChange={(val) => {
-                  const v = typeof val === 'number' ? val : 1;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, pageNumber: v }));
-                  else setSigParams(p => ({ ...p, pageNumber: v }));
-                }}
+                value={params.parameters.pageNumber}
+                onChange={(val) => params.updateParameter('pageNumber', typeof val === 'number' ? val : 1)}
                 min={1}
               />
               <TextInput
                 label={t("addFormField.name", "Field Name")}
-                value={fieldType === 'text' ? textParams.fieldName : sigParams.fieldName}
-                onChange={(e) => {
-                  const v = e.currentTarget.value;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, fieldName: v }));
-                  else setSigParams(p => ({ ...p, fieldName: v }));
-                }}
+                value={params.parameters.fieldName}
+                onChange={(e) => params.updateParameter('fieldName', e.currentTarget.value)}
               />
             </Group>
 
             <Group grow>
               <NumberInput
                 label="X"
-                value={fieldType === 'text' ? textParams.x : sigParams.x}
-                onChange={(val) => {
-                  const v = typeof val === 'number' ? val : 0;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, x: v }));
-                  else setSigParams(p => ({ ...p, x: v }));
-                }}
+                value={params.parameters.x}
+                onChange={(val) => params.updateParameter('x', typeof val === 'number' ? val : 0)}
                 min={0}
               />
               <NumberInput
                 label="Y"
-                value={fieldType === 'text' ? textParams.y : sigParams.y}
-                onChange={(val) => {
-                  const v = typeof val === 'number' ? val : 0;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, y: v }));
-                  else setSigParams(p => ({ ...p, y: v }));
-                }}
+                value={params.parameters.y}
+                onChange={(val) => params.updateParameter('y', typeof val === 'number' ? val : 0)}
                 min={0}
               />
               <NumberInput
                 label={t("addFormField.width", "Width")}
-                value={fieldType === 'text' ? textParams.width : sigParams.width}
-                onChange={(val) => {
-                  const v = typeof val === 'number' ? val : 100;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, width: v }));
-                  else setSigParams(p => ({ ...p, width: v }));
-                }}
+                value={params.parameters.width}
+                onChange={(val) => params.updateParameter('width', typeof val === 'number' ? val : 100)}
                 min={10}
               />
               <NumberInput
                 label={t("addFormField.height", "Height")}
-                value={fieldType === 'text' ? textParams.height : sigParams.height}
-                onChange={(val) => {
-                  const v = typeof val === 'number' ? val : 20;
-                  if (fieldType === 'text') setTextParams(p => ({ ...p, height: v }));
-                  else setSigParams(p => ({ ...p, height: v }));
-                }}
+                value={params.parameters.height}
+                onChange={(val) => params.updateParameter('height', typeof val === 'number' ? val : 20)}
                 min={10}
               />
             </Group>
@@ -140,13 +99,13 @@ const AddFormField = (props: BaseToolProps) => {
               <Group grow>
                 <TextInput
                   label={t("addFormField.defaultValue", "Default Value")}
-                  value={textParams.defaultValue}
-                  onChange={(e) => setTextParams(p => ({ ...p, defaultValue: e.currentTarget.value }))}
+                  value={(params.parameters as any).defaultValue ?? ''}
+                  onChange={(e) => params.updateParameter('defaultValue' as any, e.currentTarget.value)}
                 />
                 <NumberInput
                   label={t("addFormField.fontSize", "Font Size")}
-                  value={textParams.fontSize}
-                  onChange={(val) => setTextParams(p => ({ ...p, fontSize: typeof val === 'number' ? val : 12 }))}
+                  value={(params.parameters as any).fontSize ?? 12}
+                  onChange={(val) => params.updateParameter('fontSize' as any, typeof val === 'number' ? val : 12)}
                   min={6}
                   max={72}
                 />
