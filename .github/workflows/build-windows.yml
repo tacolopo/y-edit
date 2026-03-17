@@ -92,22 +92,32 @@ jobs:
 
       # ── Bundle Tesseract OCR ───────────────────────────────────────
       - name: Bundle Tesseract OCR
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p frontend/src-tauri/tools/tesseract
-          # Use UB-Mannheim Tesseract portable build for Windows
-          curl -L -o tesseract.zip "https://github.com/UB-Mannheim/tesseract/releases/download/v5.5.0.20241111/tesseract-ocr-w64-setup-5.5.0.20241111.exe"
-          # Note: For CI, we'd extract the portable version or use choco
-          choco install tesseract --no-progress -y
-          cp -r "C:/Program Files/Tesseract-OCR/"* frontend/src-tauri/tools/tesseract/
+          New-Item -ItemType Directory -Force -Path frontend/src-tauri/tools/tesseract
+          # Download Tesseract portable zip from UB-Mannheim
+          Invoke-WebRequest -Uri "https://github.com/UB-Mannheim/tesseract/releases/download/v5.5.0.20241111/tesseract-ocr-w64-setup-5.5.0.20241111.exe" -OutFile tesseract-setup.exe
+          # Silent install to a local directory
+          Start-Process -Wait -FilePath .\tesseract-setup.exe -ArgumentList '/S', '/D=D:\tesseract'
+          Copy-Item -Recurse -Force "D:\tesseract\*" frontend/src-tauri/tools/tesseract/
 
       # ── Bundle Ghostscript ─────────────────────────────────────────
       - name: Bundle Ghostscript
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p frontend/src-tauri/tools/ghostscript
-          choco install ghostscript --no-progress -y
-          cp -r "C:/Program Files/gs/"* frontend/src-tauri/tools/ghostscript/
+          New-Item -ItemType Directory -Force -Path frontend/src-tauri/tools/ghostscript
+          # Download Ghostscript portable directly from GitHub releases
+          $gsVersion = "10.04.0"
+          Invoke-WebRequest -Uri "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10040/gs10040w64.exe" -OutFile gs-setup.exe
+          # Silent install to a local directory
+          Start-Process -Wait -FilePath .\gs-setup.exe -ArgumentList '/S', '/D=D:\ghostscript'
+          # Copy the versioned subdirectory contents
+          $gsDir = Get-ChildItem "D:\ghostscript" -Directory | Select-Object -First 1
+          if ($gsDir) {
+            Copy-Item -Recurse -Force "$($gsDir.FullName)\*" frontend/src-tauri/tools/ghostscript/
+          } else {
+            Copy-Item -Recurse -Force "D:\ghostscript\*" frontend/src-tauri/tools/ghostscript/
+          }
 
       # ── Bundle Embedded Python + packages ──────────────────────────
       - name: Bundle Embedded Python
