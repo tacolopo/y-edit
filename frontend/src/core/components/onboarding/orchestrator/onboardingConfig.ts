@@ -51,7 +51,7 @@ export const DEFAULT_RUNTIME_STATE: OnboardingRuntimeState = {
   selectedRole: null,
   tourRequested: false,
   tourType: 'whatsnew',
-  isDesktopApp: true,
+  isDesktopApp: false,
   analyticsNotConfigured: false,
   analyticsEnabled: false,
   licenseNotice: {

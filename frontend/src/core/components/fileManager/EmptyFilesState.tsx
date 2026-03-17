@@ -55,11 +55,11 @@ const EmptyFilesState: React.FC = () => {
           </Text>
         </Stack>
 
-        {/* Y-Edit Logo */}
+        {/* Stirling PDF Logo */}
         <Group gap="xs" align="center">
           <img
             src={colorScheme === 'dark' ? wordmark.white : wordmark.grey}
-            alt="Y-Edit"
+            alt="Stirling PDF"
             style={{ height: '2.2rem', width: 'auto' }}
           />
         </Group>

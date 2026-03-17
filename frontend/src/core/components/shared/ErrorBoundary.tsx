@@ -80,9 +80,9 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
                 {this.state.error.message}
               </Text>
               {this.state.error.stack && (
-                <details style={{ marginTop: '1rem', width: '100%' }} open>
+                <details style={{ marginTop: '1rem', width: '100%' }}>
                   <summary style={{ cursor: 'pointer', marginBottom: '0.5rem' }}>
-                    <Text size="sm" component="span">Stack trace</Text>
+                    <Text size="sm" component="span">Show stack trace</Text>
                   </summary>
                   <pre style={{
                     fontSize: '0.75rem',
@@ -90,10 +90,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
                     backgroundColor: '#f5f5f5',
                     padding: '1rem',
                     borderRadius: '4px',
-                    maxHeight: '400px',
-                    color: '#333',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word'
+                    maxHeight: '300px'
                   }}>
                     {this.state.error.stack}
                   </pre>

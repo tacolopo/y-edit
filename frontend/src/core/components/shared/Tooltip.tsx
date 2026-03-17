@@ -367,7 +367,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             {header.logo || (
               <img
                 src={tooltipLogo}
-                alt="Y-Edit"
+                alt="Stirling PDF"
                 style={{ width: '1.4rem', height: '1.4rem', display: 'block' }}
               />
             )}

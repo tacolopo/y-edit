@@ -3,18 +3,11 @@ import { handleHttpError } from '@app/services/httpErrorHandler';
 import { setupApiInterceptors } from '@app/services/apiClientSetup';
 import { getApiBaseUrl } from '@app/services/apiClientConfig';
 
-// Create axios instance — baseURL is set dynamically per request
+// Create axios instance with default config
 const apiClient = axios.create({
   baseURL: getApiBaseUrl(),
   responseType: 'json',
   withCredentials: true,
-});
-
-// Dynamically update baseURL on every request so the runtime-discovered
-// backend port (set by initBackendUrl.ts) is always used.
-apiClient.interceptors.request.use((config) => {
-  config.baseURL = getApiBaseUrl();
-  return config;
 });
 
 // Setup interceptors (core does nothing, proprietary adds JWT auth)

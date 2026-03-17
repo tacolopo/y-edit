@@ -46,7 +46,7 @@ export default function App() {
         <Route
           path="*"
           element={
-            <AppProviders appConfigRetryOptions={{ maxRetries: 30, initialDelay: 1000 }}>
+            <AppProviders>
               <AppLayout>
                 <HomePage />
                 <Onboarding />
