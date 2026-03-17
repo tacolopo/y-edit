@@ -186,9 +186,9 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       // Signing
       certSign: {
         icon: <LocalIcon icon="workspace-premium-rounded" width="1.5rem" height="1.5rem" />,
-        name: t("home.certSign.title", "Certificate Sign"),
+        name: t("home.certSign.title", "Insert Signature"),
         component: CertSign,
-        description: t("home.certSign.desc", "Sign PDF documents using digital certificates"),
+        description: t("home.certSign.desc", "Insert a digital signature from your smart card"),
         categoryId: ToolCategoryId.STANDARD_TOOLS,
         subcategoryId: SubcategoryId.SIGNING,
         synonyms: getSynonyms(t, "certSign"),

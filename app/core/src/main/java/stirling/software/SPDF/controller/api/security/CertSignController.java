@@ -124,7 +124,8 @@ public class CertSignController {
             String location,
             String reason,
             Boolean showLogo,
-            String signatureFieldName)
+            String signatureFieldName,
+            PDRectangle userRect)
             throws Exception {
         try (PDDocument doc = pdfDocumentFactory.load(input)) {
             PDSignature signature = new PDSignature();
@@ -133,36 +134,38 @@ public class CertSignController {
             signature.setName(name);
             signature.setLocation(location);
             signature.setReason(reason);
-            signature.setSignDate(Calendar.getInstance()); // PDFBox requires Calendar
+            signature.setSignDate(Calendar.getInstance());
 
-            // Check if we should sign into an existing signature field
-            PDRectangle existingFieldRect = null;
-            if (signatureFieldName != null && !signatureFieldName.isBlank()) {
+            // Determine signature rectangle from: user-drawn box > existing field > default
+            PDRectangle sigRect = userRect;
+
+            if (sigRect == null && signatureFieldName != null && !signatureFieldName.isBlank()) {
                 PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
                 if (acroForm != null) {
                     PDField field = acroForm.getField(signatureFieldName);
                     if (field instanceof PDSignatureField sigField) {
                         PDAnnotationWidget widget = sigField.getWidgets().get(0);
-                        existingFieldRect = widget.getRectangle();
-                        // Determine which page the field is on
+                        sigRect = widget.getRectangle();
                         PDPage fieldPage = widget.getPage();
                         if (fieldPage != null) {
                             pageNumber = doc.getPages().indexOf(fieldPage);
                         }
-                        // Apply signature to this field
                         sigField.setValue(signature);
-                        showSignature = true; // Force visible since field has a location
                     }
                 }
+            }
+
+            // If we have a rectangle (user-drawn or from field), always show visible signature
+            if (sigRect != null) {
+                showSignature = true;
             }
 
             if (Boolean.TRUE.equals(showSignature)) {
                 try (SignatureOptions signatureOptions = new SignatureOptions()) {
                     signatureOptions.setVisualSignature(
                             instance.createVisibleSignature(
-                                    doc, signature, pageNumber, showLogo, existingFieldRect));
+                                    doc, signature, pageNumber, showLogo, sigRect));
                     signatureOptions.setPage(pageNumber);
-
                     doc.addSignature(signature, instance, signatureOptions);
                     doc.saveIncremental(output);
                 }
@@ -289,6 +292,18 @@ public class CertSignController {
                     "error.noCertificateFound", errorMsg);
         }
 
+        // Build user-specified signature rectangle if coordinates provided
+        PDRectangle userRect = null;
+        if (request.getSigX() != null && request.getSigY() != null
+                && request.getSigWidth() != null && request.getSigHeight() != null) {
+            userRect = new PDRectangle(
+                    request.getSigX(), request.getSigY(),
+                    request.getSigWidth(), request.getSigHeight());
+            log.info("Using user-specified signature box: x={}, y={}, w={}, h={}",
+                    request.getSigX(), request.getSigY(),
+                    request.getSigWidth(), request.getSigHeight());
+        }
+
         CreateSignature createSignature = new CreateSignature(ks, keystorePassword.toCharArray());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         sign(
@@ -302,7 +317,8 @@ public class CertSignController {
                 location,
                 reason,
                 showLogo,
-                request.getSignatureFieldName());
+                request.getSignatureFieldName(),
+                userRect);
         // Return the signed PDF
         return WebResponseUtils.bytesToWebResponse(
                 baos.toByteArray(),

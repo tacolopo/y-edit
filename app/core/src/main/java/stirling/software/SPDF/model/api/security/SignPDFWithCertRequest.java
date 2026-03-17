@@ -1,7 +1,5 @@
 package stirling.software.SPDF.model.api.security;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import lombok.Data;
@@ -13,74 +11,41 @@ import stirling.software.common.model.api.PDFFile;
 @EqualsAndHashCode(callSuper = true)
 public class SignPDFWithCertRequest extends PDFFile {
 
-    @Schema(
-            description = "The type of the digital certificate",
-            allowableValues = {"WINDOWS_STORE"},
-            defaultValue = "WINDOWS_STORE",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-    private String certType;
-
-    @Schema(
-            description =
-                    "Certificate alias from Windows certificate store (for WINDOWS_STORE type)."
-                            + " If not provided, the first signing certificate found will be used.")
+    @Schema(description = "Certificate alias from smart card. Auto-detected if not provided.")
     private String certificateAlias;
 
-    @Schema(
-            description =
-                    "Name of an existing signature field to sign into."
-                            + " If provided, the digital signature will be placed in that field."
-                            + " If not provided, a new signature is created.")
+    @Schema(description = "Name of an existing signature field to sign into.")
     private String signatureFieldName;
 
     @Schema(
-            description =
-                    "The private key for the digital certificate (required for PEM type"
-                            + " certificates, supports .pem, .der, or .key files)")
-    private MultipartFile privateKeyFile;
-
-    @Schema(
-            description =
-                    "The digital certificate (required for PEM type certificates, supports"
-                            + " .pem, .der, .crt, or .cer files)")
-    private MultipartFile certFile;
-
-    @Schema(
-            description =
-                    "The PKCS12/PFX keystore file (required for PKCS12 or PFX type certificates)")
-    private MultipartFile p12File;
-
-    @Schema(description = "The JKS keystore file (Java Key Store)")
-    private MultipartFile jksFile;
-
-    @Schema(description = "The password for the keystore or the private key", format = "password")
-    private String password;
-
-    @Schema(
             description = "Whether to visually show the signature in the PDF file",
-            defaultValue = "false",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+            defaultValue = "true")
     private Boolean showSignature;
 
-    @Schema(description = "The reason for signing the PDF", defaultValue = "Signed by SPDF")
+    @Schema(description = "The reason for signing the PDF")
     private String reason;
 
-    @Schema(description = "The location where the PDF is signed", defaultValue = "SPDF")
+    @Schema(description = "The location where the PDF is signed")
     private String location;
 
-    @Schema(description = "The name of the signer", defaultValue = "SPDF")
+    @Schema(description = "The name of the signer")
     private String name;
 
-    @Schema(
-            description =
-                    "The page number where the signature should be visible. This is required if"
-                            + " showSignature is set to true",
-            defaultValue = "1")
+    @Schema(description = "Page number where the signature should appear (1-indexed)", defaultValue = "1")
     private Integer pageNumber;
 
-    @Schema(
-            description = "Whether to visually show a signature logo along with the signature",
-            defaultValue = "true",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "X coordinate of signature box (points from left)")
+    private Float sigX;
+
+    @Schema(description = "Y coordinate of signature box (points from bottom)")
+    private Float sigY;
+
+    @Schema(description = "Width of signature box in points")
+    private Float sigWidth;
+
+    @Schema(description = "Height of signature box in points")
+    private Float sigHeight;
+
+    @Schema(description = "Whether to show a logo in the signature", defaultValue = "false")
     private Boolean showLogo;
 }
