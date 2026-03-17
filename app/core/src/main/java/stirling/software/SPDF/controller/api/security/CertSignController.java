@@ -189,12 +189,6 @@ public class CertSignController {
     public ResponseEntity<byte[]> signPDFWithCert(@ModelAttribute SignPDFWithCertRequest request)
             throws Exception {
         MultipartFile pdf = request.getFileInput();
-        String certType = request.getCertType();
-        MultipartFile privateKeyFile = request.getPrivateKeyFile();
-        MultipartFile certFile = request.getCertFile();
-        MultipartFile p12File = request.getP12File();
-        MultipartFile jksfile = request.getJksFile();
-        String password = request.getPassword();
         Boolean showSignature = request.getShowSignature();
         String reason = request.getReason();
         String location = request.getLocation();
@@ -203,46 +197,134 @@ public class CertSignController {
         Integer pageNumber = request.getPageNumber() != null ? (request.getPageNumber() - 1) : null;
         Boolean showLogo = request.getShowLogo();
 
-        if (StringUtils.isBlank(certType)) {
-            throw ExceptionUtils.createIllegalArgumentException(
-                    "error.optionsNotSpecified",
-                    "{0} options are not specified",
-                    "certificate type");
-        }
-
         KeyStore ks = null;
-        String keystorePassword = password;
+        String keystorePassword = "";
 
-        // Y-Edit only supports WINDOWS_STORE (HSPD-12 smart card) signing
+        // Try multiple approaches to access the smart card certificate
+        // 1. SunMSCAPI (Windows Certificate Store - works if PIV middleware enrolled certs)
+        // 2. SunPKCS11 (direct smart card access via PKCS#11 middleware)
+        Exception lastError = null;
+
+        // Attempt 1: Windows Certificate Store via SunMSCAPI
         try {
+            log.info("Attempting smart card signing via Windows Certificate Store (SunMSCAPI)...");
             ks = KeyStore.getInstance("Windows-MY", "SunMSCAPI");
-            ks.load(null, null); // Windows handles PIN prompts at OS level
-            keystorePassword = "";
-            // If alias not specified, find first signing certificate
-            if (request.getCertificateAlias() == null
-                    || request.getCertificateAlias().isBlank()) {
-                java.util.Enumeration<String> aliases = ks.aliases();
-                while (aliases.hasMoreElements()) {
-                    String alias = aliases.nextElement();
-                    if (ks.isKeyEntry(alias)) {
-                        name =
-                                (name == null || name.isBlank() || "SPDF".equals(name))
-                                        ? alias
-                                        : name;
-                        request.setCertificateAlias(alias);
-                        break;
-                    }
-                }
-                if (request.getCertificateAlias() == null) {
-                    throw ExceptionUtils.createIllegalArgumentException(
-                            "error.noCertificateFound",
-                            "No signing certificate found. Ensure your HSPD-12 badge is inserted.");
+            ks.load(null, null);
+
+            // Check if any signing certificates are available
+            String foundAlias = null;
+            java.util.Enumeration<String> aliases = ks.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                if (ks.isKeyEntry(alias)) {
+                    foundAlias = alias;
+                    log.info("Found signing certificate: {}", alias);
+                    break;
                 }
             }
-        } catch (java.security.NoSuchProviderException e) {
+
+            if (foundAlias == null) {
+                log.warn("SunMSCAPI: No signing certificates found in Windows store");
+                ks = null; // Fall through to PKCS#11
+            } else {
+                if (request.getCertificateAlias() == null
+                        || request.getCertificateAlias().isBlank()) {
+                    request.setCertificateAlias(foundAlias);
+                    if (name == null || name.isBlank() || "SPDF".equals(name)) {
+                        name = foundAlias;
+                    }
+                }
+                log.info("Using Windows Certificate Store with alias: {}",
+                        request.getCertificateAlias());
+            }
+        } catch (Exception e) {
+            log.warn("SunMSCAPI not available or failed: {}", e.getMessage());
+            lastError = e;
+            ks = null;
+        }
+
+        // Attempt 2: PKCS#11 (direct smart card reader access)
+        if (ks == null) {
+            log.info("Attempting smart card signing via PKCS#11...");
+            // Search for common PIV/smart card middleware DLLs on Windows
+            String[] pkcs11Paths = {
+                System.getenv("SystemRoot") + "\\System32\\opensc-pkcs11.dll",
+                System.getenv("ProgramFiles") + "\\HID Global\\ActivClient\\acpkcs211.dll",
+                System.getenv("ProgramFiles(x86)") + "\\HID Global\\ActivClient\\acpkcs211.dll",
+                System.getenv("ProgramFiles") + "\\OpenSC Project\\OpenSC\\pkcs11\\opensc-pkcs11.dll",
+                "C:\\Windows\\System32\\opensc-pkcs11.dll",
+            };
+
+            for (String dllPath : pkcs11Paths) {
+                if (dllPath == null || !new java.io.File(dllPath).exists()) {
+                    continue;
+                }
+                log.info("Found PKCS#11 library at: {}", dllPath);
+                try {
+                    String pkcs11Config = "--name=SmartCard\nlibrary=" + dllPath;
+                    java.security.Provider pkcs11Provider =
+                            Security.getProvider("SunPKCS11");
+                    if (pkcs11Provider == null) {
+                        pkcs11Provider =
+                                Security.getProvider("SunPKCS11")
+                                        != null
+                                                ? Security.getProvider("SunPKCS11")
+                                                : (java.security.Provider)
+                                                        Class.forName(
+                                                                        "sun.security.pkcs11.SunPKCS11")
+                                                                .getDeclaredConstructor()
+                                                                .newInstance();
+                    }
+                    pkcs11Provider =
+                            pkcs11Provider.configure(pkcs11Config);
+                    Security.addProvider(pkcs11Provider);
+
+                    ks = KeyStore.getInstance("PKCS11", pkcs11Provider);
+                    ks.load(null, null); // Smart card PIN prompted by OS/middleware
+
+                    String foundAlias = null;
+                    java.util.Enumeration<String> aliases = ks.aliases();
+                    while (aliases.hasMoreElements()) {
+                        String alias = aliases.nextElement();
+                        if (ks.isKeyEntry(alias)) {
+                            foundAlias = alias;
+                            log.info("PKCS#11: Found signing certificate: {}", alias);
+                            break;
+                        }
+                    }
+
+                    if (foundAlias != null) {
+                        if (request.getCertificateAlias() == null
+                                || request.getCertificateAlias().isBlank()) {
+                            request.setCertificateAlias(foundAlias);
+                            if (name == null || name.isBlank() || "SPDF".equals(name)) {
+                                name = foundAlias;
+                            }
+                        }
+                        log.info("Using PKCS#11 with alias: {}", request.getCertificateAlias());
+                        break; // Successfully found a cert via PKCS#11
+                    } else {
+                        log.warn("PKCS#11: No signing certificates found via {}", dllPath);
+                        ks = null;
+                    }
+                } catch (Exception e) {
+                    log.warn("PKCS#11 failed with {}: {}", dllPath, e.getMessage());
+                    lastError = e;
+                    ks = null;
+                }
+            }
+        }
+
+        if (ks == null) {
+            String errorMsg =
+                    "No signing certificate found. Ensure your HSPD-12 badge is inserted"
+                            + " and PIV middleware (ActivClient or OpenSC) is installed.";
+            if (lastError != null) {
+                errorMsg += " Last error: " + lastError.getMessage();
+            }
+            log.error(errorMsg);
             throw ExceptionUtils.createIllegalArgumentException(
-                    "error.windowsStoreNotAvailable",
-                    "Windows certificate store is only available on Windows with SunMSCAPI provider");
+                    "error.noCertificateFound", errorMsg);
         }
 
         CreateSignature createSignature = new CreateSignature(ks, keystorePassword.toCharArray());

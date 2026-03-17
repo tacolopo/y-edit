@@ -158,7 +158,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 1,
         endpoints: ["text-editor-pdf"],
         synonyms: getSynonyms(t, "pdfTextEditor"),
-        versionStatus: "alpha",
       },
       multiTool: {
         icon: <LocalIcon icon="dashboard-customize-rounded" width="1.5rem" height="1.5rem" />,

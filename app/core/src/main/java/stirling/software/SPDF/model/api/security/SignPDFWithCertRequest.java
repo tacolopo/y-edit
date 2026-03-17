@@ -29,9 +29,8 @@ public class SignPDFWithCertRequest extends PDFFile {
     @Schema(
             description =
                     "Name of an existing signature field to sign into."
-                            + " If provided, the digital signature will be placed in that field's"
-                            + " rectangle area, like Adobe Acrobat. If not provided, a new signature"
-                            + " is created.")
+                            + " If provided, the digital signature will be placed in that field."
+                            + " If not provided, a new signature is created.")
     private String signatureFieldName;
 
     @Schema(

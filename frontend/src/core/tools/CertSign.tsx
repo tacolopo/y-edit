@@ -34,11 +34,11 @@ const CertSign = (props: BaseToolProps) => {
         content: (
           <Stack gap="sm">
             <Text size="sm" c="dimmed">
-              {t("certSign.smartCard.description", "Insert your HSPD-12 badge or smart card. Windows will prompt for your PIN when signing.")}
+              {t("certSign.smartCard.description", "Insert your HSPD-12 badge into the card reader. You will be prompted for your PIN when signing.")}
             </Text>
             <TextInput
               label={t("certSign.signatureFieldName", "Signature Field Name (optional)")}
-              description={t("certSign.signatureFieldNameDesc", "Enter the name of an existing signature field to sign into, like Adobe Acrobat. Leave blank to create a new signature.")}
+              description={t("certSign.signatureFieldNameDesc", "To sign into an existing signature field, enter its name. Leave blank to create a new signature.")}
               value={base.params.parameters.signatureFieldName}
               onChange={(e) => base.params.updateParameter('signatureFieldName', e.currentTarget.value)}
               placeholder="SignatureField1"
