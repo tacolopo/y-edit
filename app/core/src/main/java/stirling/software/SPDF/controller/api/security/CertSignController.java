@@ -123,7 +123,8 @@ public class CertSignController {
             String name,
             String location,
             String reason,
-            Boolean showLogo)
+            Boolean showLogo,
+            String signatureFieldName)
             throws Exception {
         try (PDDocument doc = pdfDocumentFactory.load(input)) {
             PDSignature signature = new PDSignature();
@@ -133,10 +134,33 @@ public class CertSignController {
             signature.setLocation(location);
             signature.setReason(reason);
             signature.setSignDate(Calendar.getInstance()); // PDFBox requires Calendar
+
+            // Check if we should sign into an existing signature field
+            PDRectangle existingFieldRect = null;
+            if (signatureFieldName != null && !signatureFieldName.isBlank()) {
+                PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
+                if (acroForm != null) {
+                    PDField field = acroForm.getField(signatureFieldName);
+                    if (field instanceof PDSignatureField sigField) {
+                        PDAnnotationWidget widget = sigField.getWidgets().get(0);
+                        existingFieldRect = widget.getRectangle();
+                        // Determine which page the field is on
+                        PDPage fieldPage = widget.getPage();
+                        if (fieldPage != null) {
+                            pageNumber = doc.getPages().indexOf(fieldPage);
+                        }
+                        // Apply signature to this field
+                        sigField.setValue(signature);
+                        showSignature = true; // Force visible since field has a location
+                    }
+                }
+            }
+
             if (Boolean.TRUE.equals(showSignature)) {
                 try (SignatureOptions signatureOptions = new SignatureOptions()) {
                     signatureOptions.setVisualSignature(
-                            instance.createVisibleSignature(doc, signature, pageNumber, showLogo));
+                            instance.createVisibleSignature(
+                                    doc, signature, pageNumber, showLogo, existingFieldRect));
                     signatureOptions.setPage(pageNumber);
 
                     doc.addSignature(signature, instance, signatureOptions);
@@ -233,7 +257,8 @@ public class CertSignController {
                 name,
                 location,
                 reason,
-                showLogo);
+                showLogo,
+                request.getSignatureFieldName());
         // Return the signed PDF
         return WebResponseUtils.bytesToWebResponse(
                 baos.toByteArray(),
@@ -301,7 +326,11 @@ public class CertSignController {
         }
 
         public InputStream createVisibleSignature(
-                PDDocument srcDoc, PDSignature signature, Integer pageNumber, Boolean showLogo)
+                PDDocument srcDoc,
+                PDSignature signature,
+                Integer pageNumber,
+                Boolean showLogo,
+                PDRectangle existingFieldRect)
                 throws IOException {
             // modified from org.apache.pdfbox.examples.signature.CreateVisibleSignature2
             try (PDDocument doc = new PDDocument()) {
@@ -317,7 +346,12 @@ public class CertSignController {
                 acroForm.getCOSObject().setDirect(true);
                 acroFormFields.add(signatureField);
 
-                PDRectangle rect = new PDRectangle(0, 0, 200, 50);
+                // Use existing field rectangle if signing into a specific field,
+                // otherwise use default dimensions
+                PDRectangle rect =
+                        existingFieldRect != null
+                                ? existingFieldRect
+                                : new PDRectangle(0, 0, 200, 50);
 
                 widget.setRectangle(rect);
 

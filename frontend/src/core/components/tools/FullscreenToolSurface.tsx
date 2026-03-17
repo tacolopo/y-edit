@@ -7,8 +7,6 @@ import FullscreenToolList from '@app/components/tools/FullscreenToolList';
 import { ToolRegistryEntry } from '@app/data/toolsTaxonomy';
 import { ToolId } from '@app/types/toolId';
 import { useFocusTrap } from '@app/hooks/useFocusTrap';
-import { useLogoPath } from '@app/hooks/useLogoPath';
-import { useLogoAssets } from '@app/hooks/useLogoAssets';
 import { Tooltip } from '@app/components/shared/Tooltip';
 import '@app/components/tools/ToolPanel.css';
 import { ToolPanelGeometry } from '@app/hooks/tools/useToolPanelGeometry';
@@ -52,10 +50,7 @@ const FullscreenToolSurface = ({
   // Enable focus trap when surface is active
   useFocusTrap(surfaceRef, !isExiting);
 
-  const brandAltText = t("home.mobile.brandAlt", "Stirling PDF logo");
-  const brandIconSrc = useLogoPath();
-  const { wordmark } = useLogoAssets();
-  const brandTextSrc = colorScheme === "dark" ? wordmark.white : wordmark.black;
+  const brandAltText = t("home.mobile.brandAlt", "Y-Edit");
 
   const handleExit = () => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -101,8 +96,7 @@ const FullscreenToolSurface = ({
       >
         <header className="tool-panel__fullscreen-header">
           <div className="tool-panel__fullscreen-brand">
-            <img src={brandIconSrc} alt="" className="tool-panel__fullscreen-brand-icon" />
-            <img src={brandTextSrc} alt={brandAltText} className="tool-panel__fullscreen-brand-text" />
+            <span style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.02em' }}>{brandAltText}</span>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <Tooltip content={toggleLabel} position="bottom" arrow={true} openOnFocus={false} containerStyle={{ zIndex: Z_INDEX_OVER_FULLSCREEN_SURFACE }}>

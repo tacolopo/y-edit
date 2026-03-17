@@ -4,7 +4,6 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useTranslation } from 'react-i18next';
 import { useFileManagerContext } from '@app/contexts/FileManagerContext';
 import LocalIcon from '@app/components/shared/LocalIcon';
-import { useLogoAssets } from '@app/hooks/useLogoAssets';
 import { useFileActionTerminology } from '@app/hooks/useFileActionTerminology';
 import { useFileActionIcons } from '@app/hooks/useFileActionIcons';
 
@@ -13,7 +12,6 @@ const EmptyFilesState: React.FC = () => {
   const { colorScheme } = useMantineColorScheme();
   const { onLocalFileClick } = useFileManagerContext();
   const [isUploadHover, setIsUploadHover] = useState(false);
-  const { wordmark } = useLogoAssets();
   const terminology = useFileActionTerminology();
   const icons = useFileActionIcons();
 
@@ -55,13 +53,9 @@ const EmptyFilesState: React.FC = () => {
           </Text>
         </Stack>
 
-        {/* Stirling PDF Logo */}
+        {/* Y-Edit Logo */}
         <Group gap="xs" align="center">
-          <img
-            src={colorScheme === 'dark' ? wordmark.white : wordmark.grey}
-            alt="Stirling PDF"
-            style={{ height: '2.2rem', width: 'auto' }}
-          />
+          <span style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Y-Edit</span>
         </Group>
 
         {/* Upload Button */}

@@ -205,7 +205,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({ hideTitle = false, hide
               )}
             </Text>
             <Anchor
-              href="https://docs.stirlingpdf.com/Configuration/System%20and%20Security/"
+              href=""
               target="_blank"
               size="sm"
               style={{ color: "var(--mantine-color-blue-6)" }}

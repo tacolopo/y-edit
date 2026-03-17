@@ -31,7 +31,7 @@ const useGoogleProvider = (): Provider => {
     icon: '/Login/google.svg',
     type: 'oauth2',
     scope: t('provider.oauth2.google.scope', 'Sign-in authentication'),
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/OAuth%20SSO%20Configuration',
+    documentationUrl: '',
     fields: [
       {
         key: 'clientId',
@@ -73,7 +73,7 @@ const useGitHubProvider = (): Provider => {
     icon: '/Login/github.svg',
     type: 'oauth2',
     scope: t('provider.oauth2.github.scope', 'Sign-in authentication'),
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/OAuth%20SSO%20Configuration',
+    documentationUrl: '',
     fields: [
       {
         key: 'clientId',
@@ -115,7 +115,7 @@ const useKeycloakProvider = (): Provider => {
     type: 'oauth2',
     scope: t('provider.oauth2.keycloak.scope', 'SSO'),
     businessTier: false,
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/OAuth%20SSO%20Configuration',
+    documentationUrl: '',
     fields: [
       {
         key: 'issuer',
@@ -164,7 +164,7 @@ const useGenericOAuth2Provider = (): Provider => {
     type: 'oauth2',
     scope: t('provider.oauth2.generic.scope', 'SSO'),
     businessTier: false,
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/OAuth%20SSO%20Configuration',
+    documentationUrl: '',
     fields: [
       {
         key: 'enabled',
@@ -240,7 +240,7 @@ const useSMTPProvider = (): Provider => {
     icon: 'mail-rounded',
     type: 'oauth2',
     scope: t('provider.smtp.scope', 'Email Notifications'),
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/System%20and%20Security/#email-configuration',
+    documentationUrl: '',
     fields: [
       {
         key: 'enabled',
@@ -305,7 +305,7 @@ const useTelegramProvider = (): Provider => {
         label: t('admin.settings.telegram.enabled.label', 'Enable Telegram Bot'),
         description: t(
           'admin.settings.telegram.enabled.description',
-          'Allow users to interact with Stirling PDF through your configured Telegram bot.'
+          'Allow users to interact with Y-Edit through your configured Telegram bot.'
         ),
         defaultValue: false,
       },
@@ -507,7 +507,7 @@ const useSAML2Provider = (): Provider => {
     type: 'saml2',
     scope: t('provider.saml2.scope', 'SSO (SAML)'),
     businessTier: true,
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/SAML%20SSO%20Configuration/',
+    documentationUrl: '',
     fields: [
       {
         key: 'enabled',
@@ -604,7 +604,7 @@ const useGoogleDriveProvider = (): Provider => {
     icon: '/images/google-drive.svg',
     type: 'googledrive',
     scope: t('provider.googledrive.scope', 'File Import'),
-    documentationUrl: 'https://docs.stirlingpdf.com/Configuration/Google%20Drive%20File%20Picker/',
+    documentationUrl: '',
     fields: [
       {
         key: 'enabled',

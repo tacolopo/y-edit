@@ -28,6 +28,14 @@ public class SignPDFWithCertRequest extends PDFFile {
 
     @Schema(
             description =
+                    "Name of an existing signature field to sign into."
+                            + " If provided, the digital signature will be placed in that field's"
+                            + " rectangle area, like Adobe Acrobat. If not provided, a new signature"
+                            + " is created.")
+    private String signatureFieldName;
+
+    @Schema(
+            description =
                     "The private key for the digital certificate (required for PEM type"
                             + " certificates, supports .pem, .der, or .key files)")
     private MultipartFile privateKeyFile;

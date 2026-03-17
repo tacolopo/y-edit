@@ -6,6 +6,9 @@ export interface CertSignParameters extends BaseParameters {
   certType: 'WINDOWS_STORE';
   certificateAlias: string;
 
+  // Optional: sign into an existing signature field by name
+  signatureFieldName: string;
+
   // Signature appearance options
   showSignature: boolean;
   reason: string;
@@ -18,6 +21,7 @@ export interface CertSignParameters extends BaseParameters {
 export const defaultParameters: CertSignParameters = {
   certType: 'WINDOWS_STORE',
   certificateAlias: '',
+  signatureFieldName: '',
   showSignature: false,
   reason: '',
   location: '',

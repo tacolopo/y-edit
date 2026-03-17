@@ -13,6 +13,11 @@ export const buildCertSignFormData = (parameters: CertSignParameters, file: File
     formData.append('certificateAlias', parameters.certificateAlias);
   }
 
+  // If signing into an existing signature field, send the field name
+  if (parameters.signatureFieldName) {
+    formData.append('signatureFieldName', parameters.signatureFieldName);
+  }
+
   // Add signature appearance options if enabled
   if (parameters.showSignature) {
     formData.append('showSignature', 'true');

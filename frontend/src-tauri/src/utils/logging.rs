@@ -10,17 +10,17 @@ static BACKEND_LOGS: Mutex<VecDeque<String>> = Mutex::new(VecDeque::new());
 // Get platform-specific log directory
 fn get_log_directory() -> PathBuf {
     if cfg!(target_os = "macos") {
-        // macOS: ~/Library/Logs/Stirling-PDF
+        // macOS: ~/Library/Logs/Y-Edit
         let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-        PathBuf::from(home).join("Library").join("Logs").join("Stirling-PDF")
+        PathBuf::from(home).join("Library").join("Logs").join("Y-Edit")
     } else if cfg!(target_os = "windows") {
-        // Windows: %APPDATA%\Stirling-PDF\logs
+        // Windows: %APPDATA%\Y-Edit\logs
         let appdata = std::env::var("APPDATA").unwrap_or_else(|_| std::env::temp_dir().to_string_lossy().to_string());
-        PathBuf::from(appdata).join("Stirling-PDF").join("logs")
+        PathBuf::from(appdata).join("Y-Edit").join("logs")
     } else {
-        // Linux: ~/.config/Stirling-PDF/logs
+        // Linux: ~/.config/Y-Edit/logs
         let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-        PathBuf::from(home).join(".config").join("Stirling-PDF").join("logs")
+        PathBuf::from(home).join(".config").join("Y-Edit").join("logs")
     }
 }
 

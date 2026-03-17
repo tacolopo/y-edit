@@ -41,14 +41,14 @@ code {
   text-decoration: underline;
 }
 
-.stirling-link {
+.app-link {
   color: var(--mantine-color-blue-6);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
-.stirling-link:hover {
+.app-link:hover {
   color: var(--mantine-color-blue-8);
   text-decoration: underline;
 }

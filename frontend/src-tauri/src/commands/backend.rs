@@ -16,7 +16,7 @@ fn reset_starting_flag() {
     *starting_guard = false;
 }
 
-// Extract port number from "Stirling-PDF running on port: PORT" log line
+// Extract port number from "Stirling-PDF running on port: PORT" log line (must match backend output)
 fn extract_port_from_running_log(log_line: &str) -> Option<u16> {
     // Look for pattern: "running on port: PORT"
     if let Some(start) = log_line.find("running on port: ") {
@@ -73,7 +73,7 @@ fn find_bundled_jre(resource_dir: &PathBuf) -> Result<PathBuf, String> {
     Ok(java_executable)
 }
 
-// Find the Stirling-PDF JAR file
+// Find the Y-Edit JAR file
 fn find_stirling_jar(resource_dir: &PathBuf) -> Result<PathBuf, String> {
     let libs_dir = resource_dir.join("libs");
     let mut jar_files: Vec<_> = std::fs::read_dir(&libs_dir)
@@ -95,7 +95,7 @@ fn find_stirling_jar(resource_dir: &PathBuf) -> Result<PathBuf, String> {
         .collect();
 
     if jar_files.is_empty() {
-        let error_msg = "No Stirling-PDF JAR found in libs directory.".to_string();
+        let error_msg = "No Y-Edit JAR found in libs directory.".to_string();
         add_log(error_msg.clone());
         return Err(error_msg);
     }
@@ -165,7 +165,7 @@ fn copy_dir_recursive(src: &Path, dest: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-// Create, configure and run the Java command to run Stirling-PDF JAR
+// Create, configure and run the Java command to run Y-Edit JAR
 fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &PathBuf, resource_dir: &PathBuf) -> Result<(), String> {
     // Get platform-specific application data directory for Tauri mode
     let app_data_dir = app_data_dir();
@@ -425,7 +425,7 @@ pub async fn start_backend(
         e
     })?;
 
-    // Find the Stirling-PDF JAR
+    // Find the Y-Edit JAR
     let jar_path = find_stirling_jar(&resource_dir).map_err(|e| {
         reset_starting_flag();
         e

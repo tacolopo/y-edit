@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import { useFilesModalContext } from '@app/contexts/FilesModalContext';
 import LocalIcon from '@app/components/shared/LocalIcon';
-import { useLogoAssets } from '@app/hooks/useLogoAssets';
 import styles from '@app/components/fileEditor/FileEditor.module.css';
 import { useFileActionTerminology } from '@app/hooks/useFileActionTerminology';
 import { useFileActionIcons } from '@app/hooks/useFileActionIcons';
@@ -26,7 +25,6 @@ const AddFileCard = ({
   const { openFilesModal } = useFilesModalContext();
   const { colorScheme } = useMantineColorScheme();
   const [isUploadHover, setIsUploadHover] = useState(false);
-  const { wordmark } = useLogoAssets();
   const terminology = useFileActionTerminology();
   const icons = useFileActionIcons();
 
@@ -96,13 +94,9 @@ const AddFileCard = ({
 
         {/* Main content area */}
         <div className={styles.addFileContent}>
-          {/* Stirling PDF Branding */}
+          {/* Y-Edit Branding */}
           <Group gap="xs" align="center">
-            <img
-              src={colorScheme === 'dark' ? wordmark.white : wordmark.grey}
-              alt="Stirling PDF"
-              style={{ height: '2.2rem', width: 'auto' }}
-            />
+            <span style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Y-Edit</span>
           </Group>
 
           {/* Add Files + Native Upload Buttons - styled like LandingPage */}

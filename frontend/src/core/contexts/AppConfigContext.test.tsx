@@ -28,7 +28,7 @@ describe('AppConfigContext', () => {
   it('should fetch and provide app config on non-auth pages', async () => {
     const mockConfig = {
       enableLogin: false,
-      appNameNavbar: 'Stirling PDF',
+      appNameNavbar: 'Y-Edit',
       languages: ['en-US', 'en-GB'],
     };
 
@@ -158,12 +158,12 @@ describe('AppConfigContext', () => {
   it('should refetch config when jwt-available event is triggered', async () => {
     const initialConfig = {
       enableLogin: true,
-      appNameNavbar: 'Stirling PDF',
+      appNameNavbar: 'Y-Edit',
     };
 
     const updatedConfig = {
       enableLogin: true,
-      appNameNavbar: 'Stirling PDF',
+      appNameNavbar: 'Y-Edit',
       isAdmin: true,
       enableAnalytics: true,
     };
