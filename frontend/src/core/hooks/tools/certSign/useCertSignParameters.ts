@@ -2,16 +2,10 @@ import { BaseParameters } from '@app/types/parameters';
 import { useBaseParameters, BaseParametersHook } from '@app/hooks/tools/shared/useBaseParameters';
 
 export interface CertSignParameters extends BaseParameters {
-  // Sign mode selection
-  signMode: 'MANUAL' | 'AUTO';
-  // Certificate signing options (only for manual mode)
-  certType: '' | 'PEM' | 'PKCS12' | 'PFX' | 'JKS';
-  privateKeyFile?: File;
-  certFile?: File;
-  p12File?: File;
-  jksFile?: File;
-  password: string;
-  
+  // Always WINDOWS_STORE - smart card (HSPD-12) signing only
+  certType: 'WINDOWS_STORE';
+  certificateAlias: string;
+
   // Signature appearance options
   showSignature: boolean;
   reason: string;
@@ -22,9 +16,8 @@ export interface CertSignParameters extends BaseParameters {
 }
 
 export const defaultParameters: CertSignParameters = {
-  signMode: 'MANUAL',
-  certType: '',
-  password: '',
+  certType: 'WINDOWS_STORE',
+  certificateAlias: '',
   showSignature: false,
   reason: '',
   location: '',
@@ -39,29 +32,9 @@ export const useCertSignParameters = (): CertSignParametersHook => {
   return useBaseParameters({
     defaultParameters,
     endpointName: 'cert-sign',
-    validateFn: (params) => {
-      // Auto mode (server certificate) - no additional validation needed
-      if (params.signMode === 'AUTO') {
-        return true;
-      }
-      
-      // Manual mode - requires certificate type and files
-      if (!params.certType) {
-        return false;
-      }
-      
-      // Check for required files based on cert type
-      switch (params.certType) {
-        case 'PEM':
-          return !!(params.privateKeyFile && params.certFile);
-        case 'PKCS12':
-        case 'PFX':
-          return !!params.p12File;
-        case 'JKS':
-          return !!params.jksFile;
-        default:
-          return false;
-      }
+    validateFn: () => {
+      // WINDOWS_STORE always valid - Windows handles certificate selection and PIN
+      return true;
     },
   });
 };

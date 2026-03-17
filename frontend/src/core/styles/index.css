@@ -20,7 +20,7 @@ code {
 
 /* CSS Variables */
 :root {
-  --footer-height: 2rem;
+  --footer-height: 0;
 }
 
 /* Footer link styling - make buttons and links look identical */

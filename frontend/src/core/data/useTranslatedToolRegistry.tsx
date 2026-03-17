@@ -24,7 +24,6 @@ import {
 } from "@app/data/toolsTaxonomy";
 import { isSuperToolId, isLinkToolId } from '@app/types/toolId';
 import AdjustContrast from "@app/tools/AdjustContrast";
-import AdjustContrastSingleStepSettings from "@app/components/tools/adjustContrast/AdjustContrastSingleStepSettings";
 import { adjustContrastOperationConfig } from "@app/hooks/tools/adjustContrast/useAdjustContrastOperation";
 import { getSynonyms } from "@app/utils/toolSynonyms";
 import { useProprietaryToolRegistry } from "@app/data/useProprietaryToolRegistry";
@@ -40,6 +39,7 @@ import SingleLargePage from "@app/tools/SingleLargePage";
 import PageLayout from "@app/tools/PageLayout";
 import UnlockPdfForms from "@app/tools/UnlockPdfForms";
 import FormFill from "@app/tools/formFill/FormFill";
+import AddFormField from "@app/tools/AddFormField";
 import RemoveCertificateSign from "@app/tools/RemoveCertificateSign";
 import RemoveImage from "@app/tools/RemoveImage";
 import CertSign from "@app/tools/CertSign";
@@ -94,13 +94,11 @@ import CompressSettings from "@app/components/tools/compress/CompressSettings";
 import AddPasswordSettings from "@app/components/tools/addPassword/AddPasswordSettings";
 import RemovePasswordSettings from "@app/components/tools/removePassword/RemovePasswordSettings";
 import SanitizeSettings from "@app/components/tools/sanitize/SanitizeSettings";
-import AddWatermarkSingleStepSettings from "@app/components/tools/addWatermark/AddWatermarkSingleStepSettings";
 import OCRSettings from "@app/components/tools/ocr/OCRSettings";
 import ConvertSettings from "@app/components/tools/convert/ConvertSettings";
 import ChangePermissionsSettings from "@app/components/tools/changePermissions/ChangePermissionsSettings";
 import BookletImpositionSettings from "@app/components/tools/bookletImposition/BookletImpositionSettings";
 import FlattenSettings from "@app/components/tools/flatten/FlattenSettings";
-import RedactSingleStepSettings from "@app/components/tools/redact/RedactSingleStepSettings";
 import Redact from "@app/tools/Redact";
 import AdjustPageScale from "@app/tools/AdjustPageScale";
 import ReplaceColor from "@app/tools/ReplaceColor";
@@ -110,7 +108,6 @@ import { ToolId } from "@app/types/toolId";
 import MergeSettings from '@app/components/tools/merge/MergeSettings';
 import AdjustPageScaleSettings from "@app/components/tools/adjustPageScale/AdjustPageScaleSettings";
 import ScannerImageSplitSettings from "@app/components/tools/scannerImageSplit/ScannerImageSplitSettings";
-import ChangeMetadataSingleStep from "@app/components/tools/changeMetadata/ChangeMetadataSingleStep";
 import SignSettings from "@app/components/tools/sign/SignSettings";
 import AddPageNumbers from "@app/tools/AddPageNumbers";
 import RemoveAnnotations from "@app/tools/RemoveAnnotations";
@@ -120,19 +117,12 @@ import ExtractPages from "@app/tools/ExtractPages";
 import ExtractImagesSettings from "@app/components/tools/extractImages/ExtractImagesSettings";
 import ExtractPagesSettings from "@app/components/tools/extractPages/ExtractPagesSettings";
 import ReplaceColorSettings from "@app/components/tools/replaceColor/ReplaceColorSettings";
-import AddStampAutomationSettings from "@app/components/tools/addStamp/AddStampAutomationSettings";
-import CertSignAutomationSettings from "@app/components/tools/certSign/CertSignAutomationSettings";
-import CropAutomationSettings from "@app/components/tools/crop/CropAutomationSettings";
-import RotateAutomationSettings from "@app/components/tools/rotate/RotateAutomationSettings";
-import SplitAutomationSettings from "@app/components/tools/split/SplitAutomationSettings";
 import AddAttachmentsSettings from "@app/components/tools/addAttachments/AddAttachmentsSettings";
 import RemovePagesSettings from "@app/components/tools/removePages/RemovePagesSettings";
 import RemoveBlanksSettings from "@app/components/tools/removeBlanks/RemoveBlanksSettings";
-import AddPageNumbersAutomationSettings from "@app/components/tools/addPageNumbers/AddPageNumbersAutomationSettings";
 import OverlayPdfsSettings from "@app/components/tools/overlayPdfs/OverlayPdfsSettings";
 import ValidateSignature from "@app/tools/ValidateSignature";
 import ShowJS from "@app/tools/ShowJS";
-import Automate from "@app/tools/Automate";
 import Compare from "@app/tools/Compare";
 import { CONVERT_SUPPORTED_FORMATS } from "@app/constants/convertSupportedFornats";
 
@@ -168,8 +158,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 1,
         endpoints: ["text-editor-pdf"],
         synonyms: getSynonyms(t, "pdfTextEditor"),
-        supportsAutomate: false,
-        automationSettings: null,
         versionStatus: "alpha",
       },
       multiTool: {
@@ -183,8 +171,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["multi-tool"],
         synonyms: getSynonyms(t, "multiTool"),
-        supportsAutomate: false,
-        automationSettings: null
       },
       merge: {
         icon: <LocalIcon icon="library-add-rounded" width="1.5rem" height="1.5rem" />,
@@ -196,7 +182,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["merge-pdfs"],
         operationConfig: mergeOperationConfig,
-        automationSettings: MergeSettings,
         synonyms: getSynonyms(t, "merge")
       },
       // Signing
@@ -211,7 +196,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["cert-sign"],
         operationConfig: certSignOperationConfig,
-        automationSettings: CertSignAutomationSettings,
       },
       sign: {
         icon: <LocalIcon icon="signature-rounded" width="1.5rem" height="1.5rem" />,
@@ -222,9 +206,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.SIGNING,
         endpoints: ["sign"],
         operationConfig: signOperationConfig,
-        automationSettings: SignSettings, // TODO:: not all settings shown, suggested next tools shown
         synonyms: getSynonyms(t, "sign"),
-        supportsAutomate: false, //TODO make support Sign
       },
       addText: {
         icon: <LocalIcon icon="text-fields-rounded" width="1.5rem" height="1.5rem" />,
@@ -235,9 +217,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.GENERAL,
         endpoints: ["sign"],
         operationConfig: signOperationConfig,
-        automationSettings: null,
         synonyms: getSynonyms(t, 'addText'),
-        supportsAutomate: false,
       },
       addImage: {
         icon: <LocalIcon icon="image-rounded" width="1.5rem" height="1.5rem" />,
@@ -248,9 +228,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.GENERAL,
         endpoints: ["add-image"],
         operationConfig: signOperationConfig,
-        automationSettings: null,
         synonyms: getSynonyms(t, 'addImage'),
-        supportsAutomate: false,
       },
       annotate: {
         icon: <LocalIcon icon="edit" width="1.5rem" height="1.5rem" />,
@@ -262,9 +240,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         workbench: 'viewer',
         endpoints: ["view-pdf"],
         operationConfig: signOperationConfig,
-        automationSettings: null,
         synonyms: getSynonyms(t, 'annotate'),
-        supportsAutomate: false,
       },
 
       // Document Security
@@ -279,7 +255,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["add-password"],
         operationConfig: addPasswordOperationConfig,
-        automationSettings: AddPasswordSettings,
         synonyms: getSynonyms(t, "addPassword")
      },
       watermark: {
@@ -292,7 +267,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.DOCUMENT_SECURITY,
         endpoints: ["add-watermark"],
         operationConfig: addWatermarkOperationConfig,
-        automationSettings: AddWatermarkSingleStepSettings,
         synonyms: getSynonyms(t, "watermark")
       },
       addStamp: {
@@ -306,7 +280,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["add-stamp"],
         operationConfig: addStampOperationConfig,
-        automationSettings: AddStampAutomationSettings,
       },
       sanitize: {
         icon: <LocalIcon icon="cleaning-services-outline-rounded" width="1.5rem" height="1.5rem" />,
@@ -318,7 +291,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         description: t("home.sanitize.desc", "Remove potentially harmful elements from PDF files"),
         endpoints: ["sanitize-pdf"],
         operationConfig: sanitizeOperationConfig,
-        automationSettings: SanitizeSettings,
         synonyms: getSynonyms(t, "sanitize")
       },
       flatten: {
@@ -331,7 +303,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["flatten"],
         operationConfig: flattenOperationConfig,
-        automationSettings: FlattenSettings,
         synonyms: getSynonyms(t, "flatten")
       },
       unlockPDFForms: {
@@ -345,7 +316,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["unlock-pdf-forms"],
         operationConfig: unlockPdfFormsOperationConfig,
         synonyms: getSynonyms(t, "unlockPDFForms"),
-        automationSettings: null
       },
       formFill: {
         icon: <LocalIcon icon="text-fields-rounded" width="1.5rem" height="1.5rem" />,
@@ -356,9 +326,17 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.GENERAL,
         workbench: 'viewer' as const,
         endpoints: ['form-fill'],
-        automationSettings: null,
-        supportsAutomate: false,
         synonyms: ['form', 'fill', 'fillable', 'input', 'field', 'acroform'],
+      },
+      addFormField: {
+        icon: <LocalIcon icon="text-fields-rounded" width="1.5rem" height="1.5rem" />,
+        name: t('home.addFormField.title', 'Add Form Field'),
+        component: AddFormField,
+        description: t('home.addFormField.desc', 'Add text fields or signature blocks to a PDF'),
+        categoryId: ToolCategoryId.STANDARD_TOOLS,
+        subcategoryId: SubcategoryId.DOCUMENT_REVIEW,
+        endpoints: ['add-text-field', 'add-signature-field'],
+        synonyms: ['form', 'field', 'text field', 'signature field', 'acroform', 'fillable', 'sign block'],
       },
       changePermissions: {
         icon: <LocalIcon icon="lock-outline" width="1.5rem" height="1.5rem" />,
@@ -370,7 +348,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["add-password"],
         operationConfig: changePermissionsOperationConfig,
-        automationSettings: ChangePermissionsSettings,
         synonyms: getSynonyms(t, "changePermissions"),
       },
       getPdfInfo: {
@@ -382,8 +359,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.VERIFICATION,
         endpoints: ["get-info-on-pdf"],
         synonyms: getSynonyms(t, "getPdfInfo"),
-        supportsAutomate: false,
-        automationSettings: null,
         maxFiles: 1,
       },
       validateSignature: {
@@ -396,7 +371,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["validate-signature"],
         synonyms: getSynonyms(t, "validateSignature"),
-        automationSettings: null
       },
 
       // Document Review
@@ -414,8 +388,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.DOCUMENT_REVIEW,
         endpoints: ["view-pdf"],
         synonyms: getSynonyms(t, "read"),
-        supportsAutomate: false,
-        automationSettings: null
       },
       changeMetadata: {
         icon: <LocalIcon icon="assignment-rounded" width="1.5rem" height="1.5rem" />,
@@ -427,7 +399,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["update-metadata"],
         operationConfig: changeMetadataOperationConfig,
-        automationSettings: ChangeMetadataSingleStep,
         synonyms: getSynonyms(t, "changeMetadata")
       },
       editTableOfContents: {
@@ -443,8 +414,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 1,
         endpoints: ["edit-table-of-contents"],
         operationConfig: editTableOfContentsOperationConfig,
-        automationSettings: null,
-        supportsAutomate: false,
         synonyms: getSynonyms(t, "editTableOfContents"),
       },
       // Page Formatting
@@ -459,7 +428,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["crop"],
         operationConfig: cropOperationConfig,
-        automationSettings: CropAutomationSettings,
       },
       rotate: {
         icon: <LocalIcon icon="rotate-right-rounded" width="1.5rem" height="1.5rem" />,
@@ -471,7 +439,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["rotate-pdf"],
         operationConfig: rotateOperationConfig,
-        automationSettings: RotateAutomationSettings,
         synonyms: getSynonyms(t, "rotate")
       },
       split: {
@@ -483,7 +450,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.PAGE_FORMATTING,
         endpoints: Array.from(new Set(Object.values(SPLIT_ENDPOINT_NAMES))),
         operationConfig: splitOperationConfig,
-        automationSettings: SplitAutomationSettings,
         synonyms: getSynonyms(t, "split")
       },
       reorganizePages: {
@@ -499,7 +465,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["rearrange-pages"],
         operationConfig: reorganizePagesOperationConfig,
         synonyms: getSynonyms(t, "reorganizePages"),
-        automationSettings: null
 
       },
       scalePages: {
@@ -512,7 +477,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["scale-pages"],
         operationConfig: adjustPageScaleOperationConfig,
-        automationSettings: AdjustPageScaleSettings,
         synonyms: getSynonyms(t, "scalePages")
       },
       addPageNumbers: {
@@ -522,7 +486,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         description: t("home.addPageNumbers.desc", "Add Page numbers throughout a document in a set location"),
         categoryId: ToolCategoryId.STANDARD_TOOLS,
         subcategoryId: SubcategoryId.PAGE_FORMATTING,
-        automationSettings: AddPageNumbersAutomationSettings,
         maxFiles: -1,
         endpoints: ["add-page-numbers"],
         operationConfig: addPageNumbersOperationConfig,
@@ -537,7 +500,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.PAGE_FORMATTING,
         maxFiles: -1,
         endpoints: ["multi-page-layout"],
-        automationSettings: PageLayoutSettings,
         synonyms: getSynonyms(t, "pageLayout")
       },
       bookletImposition: {
@@ -545,7 +507,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         name: t("home.bookletImposition.title", "Booklet Imposition"),
         component: BookletImposition,
         operationConfig: bookletImpositionOperationConfig,
-        automationSettings: BookletImpositionSettings,
         description: t("home.bookletImposition.desc", "Create booklets with proper page ordering and multi-page layout for printing and binding"),
         categoryId: ToolCategoryId.STANDARD_TOOLS,
         subcategoryId: SubcategoryId.PAGE_FORMATTING,
@@ -564,7 +525,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["pdf-to-single-page"],
         operationConfig: singleLargePageOperationConfig,
         synonyms: getSynonyms(t, "pdfToSinglePage"),
-        automationSettings: null,
       },
       addAttachments: {
         icon: <LocalIcon icon="attachment-rounded" width="1.5rem" height="1.5rem" />,
@@ -577,7 +537,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 1,
         endpoints: ["add-attachments"],
         operationConfig: addAttachmentsOperationConfig,
-        automationSettings: AddAttachmentsSettings,
       },
 
       // Extraction
@@ -590,7 +549,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         categoryId: ToolCategoryId.STANDARD_TOOLS,
         subcategoryId: SubcategoryId.EXTRACTION,
         synonyms: getSynonyms(t, "extractPages"),
-        automationSettings: ExtractPagesSettings,
         operationConfig: extractPagesOperationConfig,
         endpoints: ["rearrange-pages"],
       },
@@ -604,7 +562,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["extract-images"],
         operationConfig: extractImagesOperationConfig,
-        automationSettings: ExtractImagesSettings,
         synonyms: getSynonyms(t, "extractImages")
       },
 
@@ -621,7 +578,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["remove-pages"],
         synonyms: getSynonyms(t, "removePages"),
         operationConfig: removePagesOperationConfig,
-        automationSettings: RemovePagesSettings,
       },
       removeBlanks: {
         icon: <LocalIcon icon="scan-delete-rounded" width="1.5rem" height="1.5rem" />,
@@ -634,7 +590,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["remove-blanks"],
         synonyms: getSynonyms(t, "removeBlanks"),
         operationConfig: removeBlanksOperationConfig,
-        automationSettings: RemoveBlanksSettings,
       },
       removeAnnotations: {
         icon: <LocalIcon icon="thread-unread-rounded" width="1.5rem" height="1.5rem" />,
@@ -646,7 +601,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["remove-annotations"],
         operationConfig: removeAnnotationsOperationConfig,
-        automationSettings: null,
         synonyms: getSynonyms(t, "removeAnnotations")
       },
       removeImage: {
@@ -660,7 +614,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["remove-image-pdf"],
         operationConfig: undefined,
         synonyms: getSynonyms(t, "removeImage"),
-        automationSettings: null,
       },
       removePassword: {
         icon: <LocalIcon icon="lock-open-right-outline-rounded" width="1.5rem" height="1.5rem" />,
@@ -672,7 +625,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["remove-password"],
         maxFiles: -1,
         operationConfig: removePasswordOperationConfig,
-        automationSettings: RemovePasswordSettings,
         synonyms: getSynonyms(t, "removePassword")
       },
       removeCertSign: {
@@ -686,27 +638,10 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["remove-cert-sign"],
         operationConfig: removeCertificateSignOperationConfig,
         synonyms: getSynonyms(t, "removeCertSign"),
-        automationSettings: null,
       },
 
       // Automation
 
-      automate: {
-        icon: <LocalIcon icon="automation-outline" width="1.5rem" height="1.5rem" />,
-        name: t("home.automate.title", "Automate"),
-        component: Automate,
-        description: t(
-          "home.automate.desc",
-          "Build multi-step workflows by chaining together PDF actions. Ideal for recurring tasks."
-        ),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.AUTOMATION,
-        maxFiles: -1,
-        supportedFormats: CONVERT_SUPPORTED_FORMATS,
-        endpoints: ["automate"],
-        synonyms: getSynonyms(t, "automate"),
-        automationSettings: null,
-      },
       autoRename: {
         icon: <LocalIcon icon="match-word-rounded" width="1.5rem" height="1.5rem" />,
         name: t("home.autoRename.title", "Auto Rename PDF File"),
@@ -718,7 +653,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         categoryId: ToolCategoryId.ADVANCED_TOOLS,
         subcategoryId: SubcategoryId.AUTOMATION,
         synonyms: getSynonyms(t, "autoRename"),
-        automationSettings: null,
       },
 
       // Advanced Formatting
@@ -733,7 +667,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["adjust-contrast"],
         operationConfig: adjustContrastOperationConfig,
-        automationSettings: AdjustContrastSingleStepSettings,
         synonyms: getSynonyms(t, "adjustContrast"),
       },
       repair: {
@@ -747,7 +680,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["repair"],
         operationConfig: repairOperationConfig,
         synonyms: getSynonyms(t, "repair"),
-        automationSettings: null
       },
       scannerImageSplit: {
         icon: <LocalIcon icon="scanner-rounded" width="1.5rem" height="1.5rem" />,
@@ -759,7 +691,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["extract-image-scans"],
         operationConfig: scannerImageSplitOperationConfig,
-        automationSettings: ScannerImageSplitSettings,
         synonyms: getSynonyms(t, "ScannerImageSplit"),
       },
       overlayPdfs: {
@@ -772,7 +703,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["overlay-pdf"],
         operationConfig: overlayPdfsOperationConfig,
         synonyms: getSynonyms(t, "overlay-pdfs"),
-        automationSettings: OverlayPdfsSettings
       },
       replaceColor: {
         icon: <LocalIcon icon="format-color-fill-rounded" width="1.5rem" height="1.5rem" />,
@@ -784,7 +714,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["replace-invert-pdf"],
         operationConfig: replaceColorOperationConfig,
-        automationSettings: ReplaceColorSettings,
         synonyms: getSynonyms(t, "replaceColor"),
       },
       scannerEffect: {
@@ -796,7 +725,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
         endpoints: ["scanner-effect"],
         synonyms: getSynonyms(t, "scannerEffect"),
-        automationSettings: null
       },
 
       // Developer Tools
@@ -811,8 +739,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 1,
         endpoints: ["show-javascript"],
         synonyms: getSynonyms(t, "showJS"),
-        supportsAutomate: false,
-        automationSettings: null
       },
       devApi: {
         icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
@@ -824,21 +750,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         link: devApiLink,
         endpoints: ["dev-api-docs"],
         synonyms: getSynonyms(t, "devApi"),
-        supportsAutomate: false,
-        automationSettings: null
-      },
-      devFolderScanning: {
-        icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
-        name: t("home.devFolderScanning.title", "Automated Folder Scanning"),
-        component: null,
-        description: t("home.devFolderScanning.desc", "Link to automated folder scanning guide"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Configuration/Folder%20Scanning/",
-        endpoints: ["dev-folder-scanning-docs"],
-        synonyms: getSynonyms(t, "devFolderScanning"),
-        supportsAutomate: false,
-        automationSettings: null
       },
       devSsoGuide: {
         icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
@@ -850,8 +761,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         link: "https://docs.stirlingpdf.com/Configuration/Single%20Sign-On%20Configuration/",
         endpoints: ["dev-sso-guide-docs"],
         synonyms: getSynonyms(t, "devSsoGuide"),
-        supportsAutomate: false,
-        automationSettings: null
       },
       devAirgapped: {
         icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
@@ -863,8 +772,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         link: "https://docs.stirlingpdf.com/Paid-Offerings/#activating-your-license",
         endpoints: ["dev-airgapped-docs"],
         synonyms: getSynonyms(t, "devAirgapped"),
-        supportsAutomate: false,
-        automationSettings: null
       },
 
       // Recommended Tools
@@ -878,9 +785,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: 2,
         endpoints: ["compare"],
         operationConfig: undefined,
-        automationSettings: null,
         synonyms: getSynonyms(t, "compare"),
-        supportsAutomate: false
       },
       compress: {
         icon: <LocalIcon icon="zoom-in-map-rounded" width="1.5rem" height="1.5rem" />,
@@ -892,7 +797,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["compress-pdf"],
         operationConfig: compressOperationConfig,
-        automationSettings: CompressSettings,
         synonyms: getSynonyms(t, "compress")
       },
       convert: {
@@ -924,7 +828,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         ],
 
         operationConfig: convertOperationConfig,
-        automationSettings: ConvertSettings,
         synonyms: getSynonyms(t, "convert")
       },
 
@@ -938,7 +841,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["ocr-pdf"],
         operationConfig: ocrOperationConfig,
-        automationSettings: OCRSettings,
         synonyms: getSynonyms(t, "ocr")
       },
       redact: {
@@ -951,7 +853,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["auto-redact"],
         operationConfig: redactOperationConfig,
-        automationSettings: RedactSingleStepSettings,
         synonyms: getSynonyms(t, "redact")
       },
     };

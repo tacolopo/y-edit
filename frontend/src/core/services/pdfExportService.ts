@@ -125,8 +125,8 @@ export class PDFExportService {
     }
 
     // Set metadata
-    newDoc.setCreator('Stirling PDF');
-    newDoc.setProducer('Stirling PDF');
+    newDoc.setCreator('Y-Edit');
+    newDoc.setProducer('Y-Edit');
     newDoc.setCreationDate(new Date());
     newDoc.setModificationDate(new Date());
 
@@ -165,8 +165,8 @@ export class PDFExportService {
     }
 
     // Set metadata
-    newDoc.setCreator('Stirling PDF');
-    newDoc.setProducer('Stirling PDF');
+    newDoc.setCreator('Y-Edit');
+    newDoc.setProducer('Y-Edit');
     newDoc.setCreationDate(new Date());
     newDoc.setModificationDate(new Date());
 

@@ -597,10 +597,18 @@ const PdfTextEditor = ({ onComplete, onError }: BaseToolProps) => {
           );
 
           console.log('Conversion response:', response.data);
+
+          // Validate response is JSON with expected shape
+          const contentType = response.headers?.['content-type'] || '';
+          if (!contentType.includes('application/json') && typeof response.data !== 'object') {
+            console.error('Unexpected response type:', contentType, 'body:', String(response.data).slice(0, 200));
+            throw new Error('Server returned non-JSON response. Check backend connectivity.');
+          }
+
           const jobId = response.data.jobId;
 
           if (!jobId) {
-            console.error('No job ID in response:', response.data);
+            console.error('No job ID in response:', response.data, 'baseURL:', response.config?.baseURL);
             throw new Error('No job ID received from server');
           }
 

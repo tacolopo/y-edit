@@ -190,59 +190,36 @@ public class CertSignController {
         KeyStore ks = null;
         String keystorePassword = password;
 
-        switch (certType) {
-            case "PEM":
-                privateKeyFile =
-                        validateFilePresent(
-                                privateKeyFile, "PEM private key", "private key file is required");
-                certFile =
-                        validateFilePresent(
-                                certFile, "PEM certificate", "certificate file is required");
-                ks = KeyStore.getInstance("JKS");
-                ks.load(null);
-                PrivateKey privateKey = getPrivateKeyFromPEM(privateKeyFile.getBytes(), password);
-                Certificate cert = (Certificate) getCertificateFromPEM(certFile.getBytes());
-                ks.setKeyEntry(
-                        "alias", privateKey, password.toCharArray(), new Certificate[] {cert});
-                break;
-            case "PKCS12":
-            case "PFX":
-                p12File =
-                        validateFilePresent(
-                                p12File, "PKCS12 keystore", "PKCS12/PFX keystore file is required");
-                ks = KeyStore.getInstance("PKCS12");
-                ks.load(p12File.getInputStream(), password.toCharArray());
-                break;
-            case "JKS":
-                jksfile =
-                        validateFilePresent(
-                                jksfile, "JKS keystore", "JKS keystore file is required");
-                ks = KeyStore.getInstance("JKS");
-                ks.load(jksfile.getInputStream(), password.toCharArray());
-                break;
-            case "SERVER":
-                if (serverCertificateService == null) {
-                    throw ExceptionUtils.createIllegalArgumentException(
-                            "error.serverCertificateNotAvailable",
-                            "Server certificate service is not available in this edition");
+        // Y-Edit only supports WINDOWS_STORE (HSPD-12 smart card) signing
+        try {
+            ks = KeyStore.getInstance("Windows-MY", "SunMSCAPI");
+            ks.load(null, null); // Windows handles PIN prompts at OS level
+            keystorePassword = "";
+            // If alias not specified, find first signing certificate
+            if (request.getCertificateAlias() == null
+                    || request.getCertificateAlias().isBlank()) {
+                java.util.Enumeration<String> aliases = ks.aliases();
+                while (aliases.hasMoreElements()) {
+                    String alias = aliases.nextElement();
+                    if (ks.isKeyEntry(alias)) {
+                        name =
+                                (name == null || name.isBlank() || "SPDF".equals(name))
+                                        ? alias
+                                        : name;
+                        request.setCertificateAlias(alias);
+                        break;
+                    }
                 }
-                if (!serverCertificateService.isEnabled()) {
+                if (request.getCertificateAlias() == null) {
                     throw ExceptionUtils.createIllegalArgumentException(
-                            "error.serverCertificateDisabled",
-                            "Server certificate feature is disabled");
+                            "error.noCertificateFound",
+                            "No signing certificate found. Ensure your HSPD-12 badge is inserted.");
                 }
-                if (!serverCertificateService.hasServerCertificate()) {
-                    throw ExceptionUtils.createIllegalArgumentException(
-                            "error.serverCertificateNotFound", "No server certificate configured");
-                }
-                ks = serverCertificateService.getServerKeyStore();
-                keystorePassword = serverCertificateService.getServerCertificatePassword();
-                break;
-            default:
-                throw ExceptionUtils.createIllegalArgumentException(
-                        "error.invalidArgument",
-                        "Invalid argument: {0}",
-                        "certificate type: " + certType);
+            }
+        } catch (java.security.NoSuchProviderException e) {
+            throw ExceptionUtils.createIllegalArgumentException(
+                    "error.windowsStoreNotAvailable",
+                    "Windows certificate store is only available on Windows with SunMSCAPI provider");
         }
 
         CreateSignature createSignature = new CreateSignature(ks, keystorePassword.toCharArray());

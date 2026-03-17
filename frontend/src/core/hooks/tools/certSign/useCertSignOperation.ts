@@ -3,40 +3,14 @@ import { ToolType, useToolOperation } from '@app/hooks/tools/shared/useToolOpera
 import { createStandardErrorHandler } from '@app/utils/toolErrorHandler';
 import { CertSignParameters, defaultParameters } from '@app/hooks/tools/certSign/useCertSignParameters';
 
-// Build form data for signing
+// Build form data for HSPD-12 smart card signing
 export const buildCertSignFormData = (parameters: CertSignParameters, file: File): FormData => {
   const formData = new FormData();
   formData.append('fileInput', file);
+  formData.append('certType', 'WINDOWS_STORE');
 
-  // Handle sign mode
-  if (parameters.signMode === 'AUTO') {
-    formData.append('certType', 'SERVER');
-  } else {
-    formData.append('certType', parameters.certType);
-    formData.append('password', parameters.password);
-
-    // Add certificate files based on type (only for manual mode)
-    switch (parameters.certType) {
-      case 'PEM':
-        if (parameters.privateKeyFile) {
-          formData.append('privateKeyFile', parameters.privateKeyFile);
-        }
-        if (parameters.certFile) {
-          formData.append('certFile', parameters.certFile);
-        }
-        break;
-      case 'PKCS12':
-      case 'PFX':
-        if (parameters.p12File) {
-          formData.append('p12File', parameters.p12File);
-        }
-        break;
-      case 'JKS':
-        if (parameters.jksFile) {
-          formData.append('jksFile', parameters.jksFile);
-        }
-        break;
-    }
+  if (parameters.certificateAlias) {
+    formData.append('certificateAlias', parameters.certificateAlias);
   }
 
   // Add signature appearance options if enabled
@@ -67,6 +41,6 @@ export const useCertSignOperation = () => {
 
   return useToolOperation<CertSignParameters>({
     ...certSignOperationConfig,
-    getErrorMessage: createStandardErrorHandler(t('certSign.error.failed', 'An error occurred while processing signatures.'))
+    getErrorMessage: createStandardErrorHandler(t('certSign.error.failed', 'An error occurred while signing. Ensure your smart card is inserted.'))
   });
 };

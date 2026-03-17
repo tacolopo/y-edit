@@ -17,7 +17,6 @@ import PageEditor from '@app/components/pageEditor/PageEditor';
 import PageEditorControls from '@app/components/pageEditor/PageEditorControls';
 import Viewer from '@app/components/viewer/Viewer';
 import LandingPage from '@app/components/shared/LandingPage';
-import Footer from '@app/components/shared/Footer';
 import DismissAllErrorsButton from '@app/components/shared/DismissAllErrorsButton';
 
 // No props needed - component uses contexts directly
@@ -225,14 +224,6 @@ export default function Workbench() {
         {renderMainContent()}
       </Box>
 
-      <Footer
-        analyticsEnabled={config?.enableAnalytics === true}
-        termsAndConditions={config?.termsAndConditions}
-        privacyPolicy={config?.privacyPolicy}
-        cookiePolicy={config?.cookiePolicy}
-        impressum={config?.impressum}
-        accessibilityStatement={config?.accessibilityStatement}
-      />
     </Box>
   );
 }

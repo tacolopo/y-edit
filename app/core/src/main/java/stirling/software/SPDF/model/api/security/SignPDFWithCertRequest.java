@@ -15,9 +15,16 @@ public class SignPDFWithCertRequest extends PDFFile {
 
     @Schema(
             description = "The type of the digital certificate",
-            allowableValues = {"PEM", "PKCS12", "PFX", "JKS", "SERVER"},
+            allowableValues = {"WINDOWS_STORE"},
+            defaultValue = "WINDOWS_STORE",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String certType;
+
+    @Schema(
+            description =
+                    "Certificate alias from Windows certificate store (for WINDOWS_STORE type)."
+                            + " If not provided, the first signing certificate found will be used.")
+    private String certificateAlias;
 
     @Schema(
             description =

@@ -11,7 +11,6 @@ import RateReviewRoundedIcon from '@mui/icons-material/RateReviewRounded';
 import ViewAgendaRoundedIcon from '@mui/icons-material/ViewAgendaRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import DeleteSweepRoundedIcon from '@mui/icons-material/DeleteSweepRounded';
-import SmartToyRoundedIcon from '@mui/icons-material/SmartToyRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
@@ -25,7 +24,6 @@ export enum SubcategoryId {
   PAGE_FORMATTING = 'pageFormatting',
   EXTRACTION = 'extraction',
   REMOVAL = 'removal',
-  AUTOMATION = 'automation',
   GENERAL = 'general',
   ADVANCED_FORMATTING = 'advancedFormatting',
   DEVELOPER_TOOLS = 'developerTools'
@@ -51,12 +49,8 @@ export type ToolRegistryEntry = {
 	kind?: ToolKind;
 	// Workbench type for navigation
 	workbench?: WorkbenchType;
-	// Operation configuration for automation
+	// Operation configuration
 	operationConfig?: ToolOperationConfig<any>;
-	// Settings component for automation configuration
-	automationSettings: React.ComponentType<any> | null;
-	// Whether this tool supports automation (defaults to true)
-	supportsAutomate?: boolean;
 	// Synonyms for search (optional)
 	synonyms?: string[];
 	// Version status indicator (e.g., "alpha", "beta")
@@ -79,7 +73,6 @@ export const SUBCATEGORY_ORDER: SubcategoryId[] = [
   SubcategoryId.PAGE_FORMATTING,
   SubcategoryId.EXTRACTION,
   SubcategoryId.REMOVAL,
-  SubcategoryId.AUTOMATION,
   SubcategoryId.GENERAL,
   SubcategoryId.ADVANCED_FORMATTING,
   SubcategoryId.DEVELOPER_TOOLS,
@@ -93,7 +86,6 @@ export const SUBCATEGORY_COLOR_MAP: Record<SubcategoryId, string> = {
   [SubcategoryId.PAGE_FORMATTING]: 'var(--category-color-formatting)',   // Purple
   [SubcategoryId.EXTRACTION]: 'var(--category-color-extraction)',        // Cyan
   [SubcategoryId.REMOVAL]: 'var(--category-color-removal)',           // Red
-  [SubcategoryId.AUTOMATION]: 'var(--category-color-automation)',        // Pink
   [SubcategoryId.GENERAL]: 'var(--category-color-general)',           // Blue
   [SubcategoryId.ADVANCED_FORMATTING]: 'var(--category-color-formatting)', // Purple
   [SubcategoryId.DEVELOPER_TOOLS]: 'var(--category-color-developer)',   // Gray
@@ -115,8 +107,6 @@ export const getSubcategoryIcon = (subcategory: SubcategoryId): React.ReactNode 
       return React.createElement(FileDownloadRoundedIcon);
     case SubcategoryId.REMOVAL:
       return React.createElement(DeleteSweepRoundedIcon);
-    case SubcategoryId.AUTOMATION:
-      return React.createElement(SmartToyRoundedIcon);
     case SubcategoryId.GENERAL:
       return React.createElement(BuildRoundedIcon);
     case SubcategoryId.ADVANCED_FORMATTING:

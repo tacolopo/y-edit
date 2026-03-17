@@ -57,17 +57,16 @@ export const CORE_REGULAR_TOOL_IDS = [
   'bookletImposition',
   'pdfTextEditor',
   'formFill',
+  'addFormField',
 ] as const;
 
 export const CORE_SUPER_TOOL_IDS = [
   'multiTool',
   'read',
-  'automate',
 ] as const;
 
 export const CORE_LINK_TOOL_IDS = [
   'devApi',
-  'devFolderScanning',
   'devSsoGuide',
   'devAirgapped',
 ] as const;

@@ -29,7 +29,7 @@ public class OpenApiConfig {
 
     private final ApplicationProperties applicationProperties;
 
-    private static final String DEFAULT_TITLE = "Stirling PDF API";
+    private static final String DEFAULT_TITLE = "Y-Edit API";
     private static final String DEFAULT_DESCRIPTION =
             "API documentation for all Server-Side processing.\n"
                     + "Please note some functionality might be UI only and missing from here.";
@@ -50,12 +50,12 @@ public class OpenApiConfig {
                                         .name("MIT")
                                         .url(
                                                 "https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/refs/heads/main/LICENSE"))
-                        .termsOfService("https://www.stirlingpdf.com/terms")
+                        .termsOfService("")
                         .contact(
                                 new Contact()
-                                        .name("Stirling Software")
-                                        .url("https://www.stirlingpdf.com")
-                                        .email("contact@stirlingpdf.com"))
+                                        .name("Y-Edit")
+                                        .url("")
+                                        .email(""))
                         .description(DEFAULT_DESCRIPTION);
 
         OpenAPI openAPI = new OpenAPI().info(info).openapi("3.0.3");

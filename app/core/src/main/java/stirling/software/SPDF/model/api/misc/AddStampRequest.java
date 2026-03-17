@@ -19,7 +19,7 @@ public class AddStampRequest extends PDFWithPageNums {
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String stampType;
 
-    @Schema(description = "The stamp text", defaultValue = "Stirling Software")
+    @Schema(description = "The stamp text", defaultValue = "Y-Edit")
     private String stampText;
 
     @Schema(description = "The stamp image")
