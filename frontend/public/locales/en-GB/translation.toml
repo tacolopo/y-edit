@@ -2110,8 +2110,22 @@ title = "Which option should I use?"
 [certSign.certTypeStep]
 stepTitle = "Certificate Format"
 
+[certSign.details]
+name = "Signer Name (optional)"
+namePlaceholder = "Auto-detected from certificate"
+reason = "Reason (optional)"
+reasonPlaceholder = "Approved"
+
 [certSign.error]
 failed = "An error occurred whilst processing signatures."
+
+[certSign.placement]
+boxPlaced = "Signature box placed on page {{page}}"
+clear = "Clear"
+description = "Draw a rectangle on the PDF where you want the signature placed, then click Insert Signature. Your smart card PIN will be requested."
+drawBox = "Draw Signature Box"
+drawing = "Draw on the PDF..."
+stepTitle = "Signature Placement"
 
 [certSign.sign]
 results = "Signed PDF"
