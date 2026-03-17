@@ -92,23 +92,14 @@ export const URL_TO_TOOL_MAP: Record<string, ToolId> = {
   // Advanced tools
   '/overlay-pdfs': 'overlayPdfs',
   '/edit-table-of-contents': 'editTableOfContents',
-  '/auto-rename': 'autoRename',
   '/compare': 'compare',
   '/multi-tool': 'multiTool',
-  '/show-js': 'showJS',
 
   // Special/utility tools
   '/read': 'read',
   '/automate': 'automate',
-  '/sign': 'sign',
   '/add-text': 'addText',
   '/pdf-text-editor': 'pdfTextEditor',
-
-  // Developer tools
-  '/dev-api': 'devApi',
-  '/dev-folder-scanning': 'devFolderScanning',
-  '/dev-sso-guide': 'devSsoGuide',
-  '/dev-airgapped': 'devAirgapped',
 
   // Legacy URL mappings from sitemap
   '/pdf-organizer': 'reorganizePages',
@@ -127,7 +118,6 @@ export const URL_TO_TOOL_MAP: Record<string, ToolId> = {
   '/replace-and-invert-color-pdf': 'replaceColor',
   '/pipeline': 'automate',
   '/extract-image-scans': 'scannerImageSplit',
-  '/show-javascript': 'showJS',
   '/scanner-effect': 'scannerEffect',
   '/split-by-size-or-count': 'split',
   '/overlay-pdf': 'overlayPdfs',

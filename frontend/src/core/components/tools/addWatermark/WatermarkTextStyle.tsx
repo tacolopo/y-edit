@@ -1,7 +1,6 @@
-import { Stack, Text, Select, ColorInput } from "@mantine/core";
+import { Stack, Text, ColorInput } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { AddWatermarkParameters } from "@app/hooks/tools/addWatermark/useAddWatermarkParameters";
-import { alphabetOptions } from "@app/constants/addWatermarkConstants";
 import { Z_INDEX_AUTOMATE_DROPDOWN } from "@app/styles/zIndex";
 
 interface WatermarkTextStyleProps {
@@ -26,19 +25,6 @@ const WatermarkTextStyle = ({ parameters, onParameterChange, disabled = false }:
           disabled={disabled}
           format="hex"
           popoverProps={{ withinPortal: true, zIndex: Z_INDEX_AUTOMATE_DROPDOWN }}
-        />
-      </Stack>
-
-      <Stack gap="xs">
-        <Text size="xs" fw={500}>
-          {t("watermark.settings.alphabet", "Alphabet")}
-        </Text>
-        <Select
-          value={parameters.alphabet}
-          onChange={(value) => value && onParameterChange("alphabet", value)}
-          data={alphabetOptions}
-          disabled={disabled}
-          comboboxProps={{ withinPortal: true, zIndex: Z_INDEX_AUTOMATE_DROPDOWN }}
         />
       </Stack>
     </Stack>

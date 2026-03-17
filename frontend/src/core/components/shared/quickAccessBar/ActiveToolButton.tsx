@@ -28,7 +28,7 @@ interface ActiveToolButtonProps {
   tooltipPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
-const NAV_IDS = ['read', 'sign', 'automate'];
+const NAV_IDS = ['read', 'automate'];
 
 const ActiveToolButton: React.FC<ActiveToolButtonProps> = ({ setActiveButton, tooltipPosition = 'right' }) => {
   const { selectedTool, selectedToolKey, leftPanelView, handleBackToTools } = useToolWorkflow();

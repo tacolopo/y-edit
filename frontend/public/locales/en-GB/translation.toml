@@ -874,11 +874,11 @@ description = "Configure optional features and functionality."
 title = "Features"
 
 [admin.settings.features.serverCertificate]
-description = "Configure server-side certificate generation for \"Sign with Y-Edit\" functionality"
+description = "Configure server-side certificate generation for \"Insert Signature\" functionality"
 label = "Server Certificate"
 
 [admin.settings.features.serverCertificate.enabled]
-description = "Enable server-side certificate for \"Sign with Y-Edit\" option"
+description = "Enable server-side certificate for \"Insert Signature\" option"
 label = "Enable Server Certificate"
 
 [admin.settings.features.serverCertificate.organizationName]
@@ -2096,7 +2096,7 @@ title = "Key not listed?"
 title = "About Certificate Types"
 
 [certSign.certType.tooltip.what]
-text = "It's a secure ID for your signature that proves you signed. Unless you're required to sign via certificate, we recommend using another secure method like Type, Draw, or Upload."
+text = "It's a secure ID for your signature that proves you signed. Unless you're required to sign via certificate, we recommend using the Draw or Upload options."
 title = "What's a certificate?"
 
 [certSign.certType.tooltip.which]
@@ -2171,7 +2171,7 @@ bullet1 = "Supports PEM, PKCS12, JKS, and server certificate formats"
 bullet2 = "Option to show or hide signature on the PDF"
 bullet3 = "Add reason, location, and signer name"
 bullet4 = "Choose which page to place visible signatures"
-bullet5 = "Use server certificate for simple 'Sign with Y-Edit' option"
+bullet5 = "Use server certificate for simple 'Insert Signature' option"
 text = "To sign a PDF, you need a digital certificate (like PEM, PKCS12, or JKS). You can choose to make the signature visible on the document or keep it invisible for security only."
 title = "Adding Signatures"
 
@@ -5481,22 +5481,22 @@ label = "White Percentage Threshold"
 unit = "%"
 
 [removeCertSign]
-description = "This tool will remove digital certificate signatures from your PDF document."
+description = "This tool will remove digital signatures from your PDF document."
 filenamePrefix = "unsigned"
-header = "Remove the digital certificate from the PDF"
+header = "Remove the digital signature from the PDF"
 selectPDF = "Select a PDF file:"
 submit = "Remove Signature"
 tags = "authenticate,PEM,P12,official,decrypt"
 title = "Remove Signature"
 
 [removeCertSign.error]
-failed = "An error occurred whilst removing certificate signatures."
+failed = "An error occurred whilst removing digital signatures."
 
 [removeCertSign.files]
 placeholder = "Select a PDF file in the main view to get started"
 
 [removeCertSign.results]
-title = "Certificate Removal Results"
+title = "Signature Removal Results"
 
 [removeImage]
 header = "Remove image"

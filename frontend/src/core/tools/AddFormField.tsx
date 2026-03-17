@@ -31,6 +31,7 @@ const AddFormField = (props: BaseToolProps) => {
 
   const base = fieldType === 'text' ? textBase : sigBase;
   const params = fieldType === 'text' ? textBase.params : sigBase.params;
+  const updateParam = params.updateParameter as (key: string, value: any) => void;
 
   return createToolFlow({
     files: {
@@ -58,13 +59,13 @@ const AddFormField = (props: BaseToolProps) => {
               <NumberInput
                 label={t("addFormField.page", "Page")}
                 value={params.parameters.pageNumber}
-                onChange={(val) => params.updateParameter('pageNumber', typeof val === 'number' ? val : 1)}
+                onChange={(val) => updateParam('pageNumber', typeof val === 'number' ? val : 1)}
                 min={1}
               />
               <TextInput
                 label={t("addFormField.name", "Field Name")}
                 value={params.parameters.fieldName}
-                onChange={(e) => params.updateParameter('fieldName', e.currentTarget.value)}
+                onChange={(e) => updateParam('fieldName', e.currentTarget.value)}
               />
             </Group>
 
@@ -72,25 +73,25 @@ const AddFormField = (props: BaseToolProps) => {
               <NumberInput
                 label="X"
                 value={params.parameters.x}
-                onChange={(val) => params.updateParameter('x', typeof val === 'number' ? val : 0)}
+                onChange={(val) => updateParam('x', typeof val === 'number' ? val : 0)}
                 min={0}
               />
               <NumberInput
                 label="Y"
                 value={params.parameters.y}
-                onChange={(val) => params.updateParameter('y', typeof val === 'number' ? val : 0)}
+                onChange={(val) => updateParam('y', typeof val === 'number' ? val : 0)}
                 min={0}
               />
               <NumberInput
                 label={t("addFormField.width", "Width")}
                 value={params.parameters.width}
-                onChange={(val) => params.updateParameter('width', typeof val === 'number' ? val : 100)}
+                onChange={(val) => updateParam('width', typeof val === 'number' ? val : 100)}
                 min={10}
               />
               <NumberInput
                 label={t("addFormField.height", "Height")}
                 value={params.parameters.height}
-                onChange={(val) => params.updateParameter('height', typeof val === 'number' ? val : 20)}
+                onChange={(val) => updateParam('height', typeof val === 'number' ? val : 20)}
                 min={10}
               />
             </Group>
@@ -100,12 +101,12 @@ const AddFormField = (props: BaseToolProps) => {
                 <TextInput
                   label={t("addFormField.defaultValue", "Default Value")}
                   value={(params.parameters as any).defaultValue ?? ''}
-                  onChange={(e) => params.updateParameter('defaultValue' as any, e.currentTarget.value)}
+                  onChange={(e) => updateParam('defaultValue' as any, e.currentTarget.value)}
                 />
                 <NumberInput
                   label={t("addFormField.fontSize", "Font Size")}
                   value={(params.parameters as any).fontSize ?? 12}
-                  onChange={(val) => params.updateParameter('fontSize' as any, typeof val === 'number' ? val : 12)}
+                  onChange={(val) => updateParam('fontSize' as any, typeof val === 'number' ? val : 12)}
                   min={6}
                   max={72}
                 />

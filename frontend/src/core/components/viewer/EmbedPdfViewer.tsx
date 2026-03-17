@@ -197,7 +197,7 @@ const EmbedPdfViewerContent = ({
   // Form fill context
   const { fetchFields: fetchFormFields, setProviderMode } = useFormFill();
 
-  const isInAnnotationTool = selectedTool === 'sign' || selectedTool === 'addText' || selectedTool === 'addImage' || selectedTool === 'annotate' || selectedTool === 'certSign';
+  const isInAnnotationTool = selectedTool === 'addText' || selectedTool === 'addImage' || selectedTool === 'annotate' || selectedTool === 'certSign';
   const isSignatureMode = isInAnnotationTool;
   const isManualRedactMode = selectedTool === 'redact';
 

@@ -8,7 +8,6 @@ export type ToolKind = 'regular' | 'super' | 'link';
 
 export const CORE_REGULAR_TOOL_IDS = [
   'certSign',
-  'sign',
   'addText',
   'addPassword',
   'removePassword',
@@ -29,7 +28,6 @@ export const CORE_REGULAR_TOOL_IDS = [
   'scannerImageSplit',
   'editTableOfContents',
   'scannerEffect',
-  'autoRename',
   'pageLayout',
   'scalePages',
   'adjustContrast',
@@ -53,11 +51,11 @@ export const CORE_REGULAR_TOOL_IDS = [
   'getPdfInfo',
   'validateSignature',
   'replaceColor',
-  'showJS',
   'bookletImposition',
   'pdfTextEditor',
   'formFill',
   'addFormField',
+  'sign',
 ] as const;
 
 export const CORE_SUPER_TOOL_IDS = [
@@ -66,9 +64,7 @@ export const CORE_SUPER_TOOL_IDS = [
 ] as const;
 
 export const CORE_LINK_TOOL_IDS = [
-  'devApi',
-  'devSsoGuide',
-  'devAirgapped',
+  'automate',
 ] as const;
 
 export const REGULAR_TOOL_IDS = [

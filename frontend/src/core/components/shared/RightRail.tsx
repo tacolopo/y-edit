@@ -10,7 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { useFileActionTerminology } from '@app/hooks/useFileActionTerminology';
 import { useFileActionIcons } from '@app/hooks/useFileActionIcons';
 
-import LanguageSelector from '@app/components/shared/LanguageSelector';
 import { useRainbowThemeContext } from '@app/components/shared/RainbowThemeProvider';
 import { Tooltip } from '@app/components/shared/Tooltip';
 import { ViewerContext } from '@app/contexts/ViewerContext';
@@ -251,13 +250,6 @@ export default function RightRail() {
             tooltipPosition,
             tooltipOffset
           )}
-
-          <LanguageSelector
-            position="left-start"
-            offset={6}
-            compact
-            tooltip={t('rightRail.language', 'Language')}
-          />
 
           {renderWithTooltip(
             <ActionIcon

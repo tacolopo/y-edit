@@ -40,7 +40,6 @@ export default function ViewerAnnotationControls({ currentView, disabled = false
   // Check if we're in sign mode or redaction mode
   const { selectedTool } = useNavigationState();
   const { actions: navActions } = useNavigationActions();
-  const isSignMode = selectedTool === 'sign';
   const isRedactMode = selectedTool === 'redact';
 
   // Get redaction pending state and navigation guard
@@ -50,7 +49,7 @@ export default function ViewerAnnotationControls({ currentView, disabled = false
 
 
   // Check if we're in any annotation tool that should disable the toggle
-  const isInAnnotationTool = selectedTool === 'annotate' || selectedTool === 'sign' || selectedTool === 'addImage' || selectedTool === 'addText';
+  const isInAnnotationTool = selectedTool === 'annotate' || selectedTool === 'addImage' || selectedTool === 'addText';
 
   // Check if we're on annotate tool to highlight the button
   const isAnnotateActive = selectedTool === 'annotate';
@@ -139,12 +138,6 @@ export default function ViewerAnnotationControls({ currentView, disabled = false
       viewerContext?.toggleAnnotationsVisibility();
     }
   }, [annotationsHidden, hasUnsavedChanges, requestNavigation, viewerContext]);
-
-  // Don't show any annotation controls in sign mode
-  // NOTE: This early return is placed AFTER all hooks to satisfy React's rules of hooks
-  if (isSignMode) {
-    return null;
-  }
 
   return (
     <>

@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import LocalIcon from "@app/components/shared/LocalIcon";
 import { useTranslation } from "react-i18next";
-import { devApiLink } from "@app/constants/links";
 import SplitPdfPanel from "@app/tools/Split";
 import CompressPdfPanel from "@app/tools/Compress";
 import OCRPanel from "@app/tools/OCR";
@@ -34,7 +33,6 @@ import AddAttachments from "@app/tools/AddAttachments";
 import Merge from '@app/tools/Merge';
 import EditTableOfContents from '@app/tools/EditTableOfContents';
 import Repair from "@app/tools/Repair";
-import AutoRename from "@app/tools/AutoRename";
 import SingleLargePage from "@app/tools/SingleLargePage";
 import PageLayout from "@app/tools/PageLayout";
 import UnlockPdfForms from "@app/tools/UnlockPdfForms";
@@ -49,7 +47,6 @@ import Rotate from "@app/tools/Rotate";
 import PdfTextEditor from "@app/tools/pdfTextEditor/PdfTextEditor";
 import ChangeMetadata from "@app/tools/ChangeMetadata";
 import Crop from "@app/tools/Crop";
-import Sign from "@app/tools/Sign";
 import AddText from "@app/tools/AddText";
 import AddImage from "@app/tools/AddImage";
 import Annotate from "@app/tools/Annotate";
@@ -72,7 +69,6 @@ import { certSignOperationConfig } from "@app/hooks/tools/certSign/useCertSignOp
 import { bookletImpositionOperationConfig } from "@app/hooks/tools/bookletImposition/useBookletImpositionOperation";
 import { mergeOperationConfig } from '@app/hooks/tools/merge/useMergeOperation';
 import { editTableOfContentsOperationConfig } from '@app/hooks/tools/editTableOfContents/useEditTableOfContentsOperation';
-import { autoRenameOperationConfig } from "@app/hooks/tools/autoRename/useAutoRenameOperation";
 import { flattenOperationConfig } from "@app/hooks/tools/flatten/useFlattenOperation";
 import { redactOperationConfig } from "@app/hooks/tools/redact/useRedactOperation";
 import { rotateOperationConfig } from "@app/hooks/tools/rotate/useRotateOperation";
@@ -108,7 +104,6 @@ import { ToolId } from "@app/types/toolId";
 import MergeSettings from '@app/components/tools/merge/MergeSettings';
 import AdjustPageScaleSettings from "@app/components/tools/adjustPageScale/AdjustPageScaleSettings";
 import ScannerImageSplitSettings from "@app/components/tools/scannerImageSplit/ScannerImageSplitSettings";
-import SignSettings from "@app/components/tools/sign/SignSettings";
 import AddPageNumbers from "@app/tools/AddPageNumbers";
 import RemoveAnnotations from "@app/tools/RemoveAnnotations";
 import PageLayoutSettings from "@app/components/tools/pageLayout/PageLayoutSettings";
@@ -122,7 +117,6 @@ import RemovePagesSettings from "@app/components/tools/removePages/RemovePagesSe
 import RemoveBlanksSettings from "@app/components/tools/removeBlanks/RemoveBlanksSettings";
 import OverlayPdfsSettings from "@app/components/tools/overlayPdfs/OverlayPdfsSettings";
 import ValidateSignature from "@app/tools/ValidateSignature";
-import ShowJS from "@app/tools/ShowJS";
 import Compare from "@app/tools/Compare";
 import { CONVERT_SUPPORTED_FORMATS } from "@app/constants/convertSupportedFornats";
 
@@ -195,17 +189,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         maxFiles: -1,
         endpoints: ["cert-sign"],
         operationConfig: certSignOperationConfig,
-      },
-      sign: {
-        icon: <LocalIcon icon="signature-rounded" width="1.5rem" height="1.5rem" />,
-        name: t("home.sign.title", "Sign"),
-        component: Sign,
-        description: t("home.sign.desc", "Adds signature to PDF by drawing, text or image"),
-        categoryId: ToolCategoryId.STANDARD_TOOLS,
-        subcategoryId: SubcategoryId.SIGNING,
-        endpoints: ["sign"],
-        operationConfig: signOperationConfig,
-        synonyms: getSynonyms(t, "sign"),
       },
       addText: {
         icon: <LocalIcon icon="text-fields-rounded" width="1.5rem" height="1.5rem" />,
@@ -641,19 +624,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
 
       // Automation
 
-      autoRename: {
-        icon: <LocalIcon icon="match-word-rounded" width="1.5rem" height="1.5rem" />,
-        name: t("home.autoRename.title", "Auto Rename PDF File"),
-        component: AutoRename,
-        maxFiles: -1,
-        endpoints: ["auto-rename"],
-        operationConfig: autoRenameOperationConfig,
-        description: t("home.autoRename.desc", "Automatically rename PDF files based on their content"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.AUTOMATION,
-        synonyms: getSynonyms(t, "autoRename"),
-      },
-
       // Advanced Formatting
 
       adjustContrast: {
@@ -724,53 +694,6 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.ADVANCED_FORMATTING,
         endpoints: ["scanner-effect"],
         synonyms: getSynonyms(t, "scannerEffect"),
-      },
-
-      // Developer Tools
-
-      showJS: {
-        icon: <LocalIcon icon="javascript-rounded" width="1.5rem" height="1.5rem" />,
-        name: t("home.showJS.title", "Show JavaScript"),
-        component: ShowJS,
-        description: t("home.showJS.desc", "Extract and display JavaScript code from PDF documents"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        maxFiles: 1,
-        endpoints: ["show-javascript"],
-        synonyms: getSynonyms(t, "showJS"),
-      },
-      devApi: {
-        icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
-        name: t("home.devApi.title", "API"),
-        component: null,
-        description: t("home.devApi.desc", "Link to API documentation"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: devApiLink,
-        endpoints: ["dev-api-docs"],
-        synonyms: getSynonyms(t, "devApi"),
-      },
-      devSsoGuide: {
-        icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
-        name: t("home.devSsoGuide.title", "SSO Guide"),
-        component: null,
-        description: t("home.devSsoGuide.desc", "Link to SSO guide"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Configuration/Single%20Sign-On%20Configuration/",
-        endpoints: ["dev-sso-guide-docs"],
-        synonyms: getSynonyms(t, "devSsoGuide"),
-      },
-      devAirgapped: {
-        icon: <LocalIcon icon="open-in-new-rounded" width="1.5rem" height="1.5rem" style={{ color: "#2F7BF6" }} />,
-        name: t("home.devAirgapped.title", "Air-gapped Setup"),
-        component: null,
-        description: t("home.devAirgapped.desc", "Link to air-gapped setup guide"),
-        categoryId: ToolCategoryId.ADVANCED_TOOLS,
-        subcategoryId: SubcategoryId.DEVELOPER_TOOLS,
-        link: "https://docs.stirlingpdf.com/Paid-Offerings/#activating-your-license",
-        endpoints: ["dev-airgapped-docs"],
-        synonyms: getSynonyms(t, "devAirgapped"),
       },
 
       // Recommended Tools
@@ -853,6 +776,30 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         endpoints: ["auto-redact"],
         operationConfig: redactOperationConfig,
         synonyms: getSynonyms(t, "redact")
+      },
+
+      // Internal operation type shared by addText, addImage, annotate
+      sign: {
+        icon: <LocalIcon icon="signature-outline-rounded" width="1.5rem" height="1.5rem" />,
+        name: t("home.sign.title", "Sign"),
+        component: null,
+        description: t("home.sign.desc", "Sign PDF documents"),
+        categoryId: ToolCategoryId.STANDARD_TOOLS,
+        subcategoryId: SubcategoryId.SIGNING,
+        endpoints: ["sign"],
+        operationConfig: signOperationConfig,
+        synonyms: [],
+      },
+      // Link tool — navigates to /automate
+      automate: {
+        icon: <LocalIcon icon="automation-outline" width="1.5rem" height="1.5rem" />,
+        name: t("quickAccess.automate", "Automate"),
+        component: null,
+        description: t("home.automate.desc", "Automate PDF processing workflows"),
+        categoryId: ToolCategoryId.ADVANCED_TOOLS,
+        subcategoryId: SubcategoryId.GENERAL,
+        endpoints: [],
+        synonyms: [],
       },
     };
 
