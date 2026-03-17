@@ -628,7 +628,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       },
       removeCertSign: {
         icon: <LocalIcon icon="remove-moderator-outline-rounded" width="1.5rem" height="1.5rem" />,
-        name: t("home.removeCertSign.title", "Remove Certificate Sign"),
+        name: t("home.removeCertSign.title", "Remove Signature"),
         component: RemoveCertificateSign,
         description: t("home.removeCertSign.desc", "Remove digital signature from PDF documents"),
         categoryId: ToolCategoryId.STANDARD_TOOLS,

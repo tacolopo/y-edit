@@ -2057,7 +2057,7 @@ reason = "Reason"
 serverCertMessage = "Using server certificate - no files or password required"
 showLogo = "Show Logo"
 tags = "authenticate,PEM,P12,official,encrypt,sign,certificate,PKCS12,JKS,server,manual,auto"
-title = "Certificate Signing"
+title = "Insert Signature"
 
 [certSign.appearance]
 invisible = "Invisible"
@@ -3548,9 +3548,9 @@ tags = "booklet,print,binding,imposition,booklet printing,saddle stitch,fold,pam
 title = "Booklet Imposition"
 
 [home.certSign]
-desc = "Signs a PDF with a Certificate/Key (PEM/P12)"
-tags = "authenticate,PEM,P12,official,encrypt,sign,certificate,PKCS12,JKS,server,manual,auto,digital certificate,certificate signature,PKI,cryptographic signature,trusted signature"
-title = "Sign with Certificate"
+desc = "Insert a digital signature from your smart card"
+tags = "authenticate,PEM,P12,official,encrypt,sign,certificate,PKCS12,JKS,server,manual,auto,digital certificate,certificate signature,PKI,cryptographic signature,trusted signature,HSPD-12,smart card,CAC,PIV"
+title = "Insert Signature"
 
 [home.changeMetadata]
 desc = "Change/Remove/Add metadata from a PDF document"
@@ -3703,9 +3703,9 @@ tags = "delete,clean,empty,remove blank,delete blank pages,empty pages,white pag
 title = "Remove Blank pages"
 
 [home.removeCertSign]
-desc = "Remove certificate signature from PDF"
+desc = "Remove digital signature from PDF"
 tags = "remove,delete,unlock,remove certificate,remove signature,delete signature,unsigned,remove digital signature,strip signature,remove cert,unsign"
-title = "Remove Certificate Sign"
+title = "Remove Signature"
 
 [home.removeImage]
 desc = "Remove image from PDF to reduce file size"
@@ -5487,7 +5487,7 @@ header = "Remove the digital certificate from the PDF"
 selectPDF = "Select a PDF file:"
 submit = "Remove Signature"
 tags = "authenticate,PEM,P12,official,decrypt"
-title = "Remove Certificate Signature"
+title = "Remove Signature"
 
 [removeCertSign.error]
 failed = "An error occurred whilst removing certificate signatures."

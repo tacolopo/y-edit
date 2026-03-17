@@ -31,7 +31,7 @@ const RemoveCertificateSign = (props: BaseToolProps) => {
     review: {
       isVisible: base.hasResults,
       operation: base.operation,
-      title: t("removeCertSign.results.title", "Certificate Removal Results"),
+      title: t("removeCertSign.results.title", "Signature Removal Results"),
       onFileClick: base.handleThumbnailClick,
       onUndo: base.handleUndo,
     },
