@@ -139,6 +139,16 @@ public class CertSignController {
             // Determine signature rectangle from: user-drawn box > existing field > default
             PDRectangle sigRect = userRect;
 
+            // Convert user-drawn rect from screen coords (top-left origin) to PDF coords (bottom-left origin)
+            if (userRect != null) {
+                float pageHeight = doc.getPage(pageNumber).getMediaBox().getHeight();
+                sigRect = new PDRectangle(
+                        userRect.getLowerLeftX(),
+                        pageHeight - userRect.getLowerLeftY() - userRect.getHeight(),
+                        userRect.getWidth(),
+                        userRect.getHeight());
+            }
+
             if (sigRect == null && signatureFieldName != null && !signatureFieldName.isBlank()) {
                 PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
                 if (acroForm != null) {
@@ -528,8 +538,14 @@ public class CertSignController {
                         cs.restoreGraphicsState();
                     }
 
-                    // show text
-                    float fontSize = 10;
+                    // Dynamic font size: fit all lines within the box height
+                    String reason = signature.getReason();
+                    int lineCount = 2; // "Signed by ..." and date
+                    if (reason != null && !reason.isEmpty()) lineCount++;
+                    // Each line needs fontSize * 1.5 (leading), plus one leading of top margin
+                    // Total = (lineCount + 1) * fontSize * 1.5 <= height
+                    float fontSize = Math.min(10f, height / ((lineCount + 1) * 1.5f));
+                    fontSize = Math.max(3f, fontSize); // floor: below 3pt is unreadable
                     float leading = fontSize * 1.5f;
                     cs.beginText();
                     cs.setFont(font, fontSize);
@@ -537,17 +553,18 @@ public class CertSignController {
                     cs.newLineAtOffset(fontSize, height - leading);
                     cs.setLeading(leading);
 
-                    X509Certificate cert = (X509Certificate) getCertificateChain()[0];
-
-                    // https://stackoverflow.com/questions/2914521/
-                    X500Name x500Name = new X500Name(cert.getSubjectX500Principal().getName());
-                    RDN cn = x500Name.getRDNs(BCStyle.CN)[0];
-                    String name = IETFUtils.valueToString(cn.getFirst().getValue());
+                    // Use user-entered name from PDSignature; fall back to certificate CN
+                    String signedByName = signature.getName();
+                    if (signedByName == null || signedByName.isBlank()) {
+                        X509Certificate cert = (X509Certificate) getCertificateChain()[0];
+                        X500Name x500Name = new X500Name(cert.getSubjectX500Principal().getName());
+                        RDN cn = x500Name.getRDNs(BCStyle.CN)[0];
+                        signedByName = IETFUtils.valueToString(cn.getFirst().getValue());
+                    }
 
                     String date = signature.getSignDate().getTime().toString();
-                    String reason = signature.getReason();
 
-                    cs.showText("Signed by " + name);
+                    cs.showText("Signed by " + signedByName);
                     cs.newLine();
                     cs.showText(date);
                     cs.newLine();
