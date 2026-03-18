@@ -6,7 +6,7 @@ import { useCertSignOperation } from "@app/hooks/tools/certSign/useCertSignOpera
 import { useBaseTool } from "@app/hooks/tools/shared/useBaseTool";
 import { useSignature } from "@app/contexts/SignatureContext";
 import { BaseToolProps, ToolComponent } from "@app/types/tool";
-import { Text, TextInput, Stack, Group, Button } from "@mantine/core";
+import { Text, TextInput, PasswordInput, Stack, Group, Button } from "@mantine/core";
 
 interface DrawnRect {
   x: number;
@@ -205,6 +205,12 @@ const CertSign = (props: BaseToolProps) => {
               value={base.params.parameters.reason}
               onChange={(e) => base.params.updateParameter('reason', e.currentTarget.value)}
               placeholder={t("certSign.details.reasonPlaceholder", "Approved")}
+            />
+            <PasswordInput
+              label={t("certSign.details.pin", "Smart Card PIN")}
+              value={base.params.parameters.pin}
+              onChange={(e) => base.params.updateParameter('pin', e.currentTarget.value)}
+              placeholder={t("certSign.details.pinPlaceholder", "Enter your smart card PIN")}
             />
             <TextInput
               label={t("certSign.details.name", "Signer Name (optional)")}

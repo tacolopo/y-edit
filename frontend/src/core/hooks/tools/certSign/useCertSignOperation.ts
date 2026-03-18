@@ -21,6 +21,7 @@ export const buildCertSignFormData = (parameters: CertSignParameters, file: File
     formData.append('signatureFieldName', parameters.signatureFieldName);
   }
 
+  if (parameters.pin) formData.append('pin', parameters.pin);
   if (parameters.reason) formData.append('reason', parameters.reason);
   if (parameters.location) formData.append('location', parameters.location);
   if (parameters.name) formData.append('name', parameters.name);

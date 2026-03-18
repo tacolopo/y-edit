@@ -12,6 +12,9 @@ export interface CertSignParameters extends BaseParameters {
   // Optional: sign into an existing field
   signatureFieldName: string;
 
+  // Smart card PIN
+  pin: string;
+
   // Signature metadata
   reason: string;
   location: string;
@@ -26,6 +29,7 @@ export const defaultParameters: CertSignParameters = {
   sigHeight: null,
   pageNumber: 1,
   signatureFieldName: '',
+  pin: '',
   reason: '',
   location: '',
   name: '',

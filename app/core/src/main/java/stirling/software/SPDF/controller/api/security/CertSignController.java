@@ -203,6 +203,8 @@ public class CertSignController {
         KeyStore ks = null;
         String keystorePassword = "";
         Exception lastError = null;
+        String pin = request.getPin();
+        boolean usedPkcs11 = false;
 
         // Strategy 1: On Windows, try the Windows Certificate Store first.
         // This picks up smart card certificates automatically via the built-in
@@ -215,15 +217,18 @@ public class CertSignController {
                 ks.load(null, null);
 
                 String foundAlias = null;
+                int winTotalAliases = 0;
                 java.util.Enumeration<String> aliases = ks.aliases();
                 while (aliases.hasMoreElements()) {
                     String alias = aliases.nextElement();
-                    if (ks.isKeyEntry(alias)) {
-                        log.info("Windows-MY alias: {} (isKeyEntry=true)", alias);
+                    winTotalAliases++;
+                    boolean isKey = ks.isKeyEntry(alias);
+                    log.info("Windows-MY alias: {} (isKeyEntry={})", alias, isKey);
+                    if (isKey && foundAlias == null) {
                         foundAlias = alias;
-                        break;
                     }
                 }
+                log.info("Windows-MY: {} total aliases found", winTotalAliases);
 
                 if (foundAlias != null) {
                     if (request.getCertificateAlias() == null
@@ -282,18 +287,35 @@ public class CertSignController {
                     Security.addProvider(pkcs11Provider);
 
                     ks = KeyStore.getInstance("PKCS11", pkcs11Provider);
-                    ks.load(null, null); // PIN prompted by smart card middleware
+                    char[] pinChars =
+                            (pin != null && !pin.isBlank()) ? pin.toCharArray() : null;
+                    ks.load(null, pinChars);
 
                     String foundAlias = null;
+                    String preferredAlias = null;
+                    int certOnlyCount = 0;
                     java.util.Enumeration<String> aliases = ks.aliases();
                     while (aliases.hasMoreElements()) {
                         String alias = aliases.nextElement();
-                        log.info("PKCS#11 alias: {} (isKeyEntry={})", alias, ks.isKeyEntry(alias));
-                        if (ks.isKeyEntry(alias)) {
-                            foundAlias = alias;
-                            break;
+                        boolean isKey = ks.isKeyEntry(alias);
+                        boolean isCert = ks.isCertificateEntry(alias);
+                        log.info(
+                                "PKCS#11 alias: {} (isKeyEntry={}, isCertificateEntry={})",
+                                alias,
+                                isKey,
+                                isCert);
+                        if (isKey) {
+                            if (foundAlias == null) foundAlias = alias;
+                            String lower = alias.toLowerCase();
+                            if (lower.contains("digital signature")
+                                    || lower.contains("signing")) {
+                                preferredAlias = alias;
+                            }
+                        } else if (isCert) {
+                            certOnlyCount++;
                         }
                     }
+                    if (preferredAlias != null) foundAlias = preferredAlias;
 
                     if (foundAlias != null) {
                         if (request.getCertificateAlias() == null
@@ -304,9 +326,18 @@ public class CertSignController {
                             }
                         }
                         log.info("Using PKCS#11 certificate: {}", request.getCertificateAlias());
+                        usedPkcs11 = true;
                         break;
                     } else {
-                        log.warn("No signing certificates found on card via {}", dllPath);
+                        if (certOnlyCount > 0) {
+                            log.warn(
+                                    "Found {} certificate(s) but no private keys via {}."
+                                        + " PIN authentication may be required.",
+                                    certOnlyCount,
+                                    dllPath);
+                        } else {
+                            log.warn("No entries found on card via {}", dllPath);
+                        }
                         ks = null;
                     }
                 } catch (Exception e) {
@@ -318,9 +349,15 @@ public class CertSignController {
         }
 
         if (ks == null) {
-            String errorMsg =
-                    "No signing certificate found. Ensure your smart card is inserted"
-                            + " and its certificate is visible in Windows (certmgr.msc).";
+            String errorMsg = "No signing certificate found.";
+            if (pin == null || pin.isBlank()) {
+                errorMsg +=
+                        " Your smart card may require a PIN — enter it in the PIN field"
+                                + " and try again.";
+            } else {
+                errorMsg += " Ensure your smart card is inserted and the PIN is correct.";
+            }
+            errorMsg += " Also verify certificates are visible in certmgr.msc.";
             if (lastError != null) {
                 errorMsg += " Error: " + lastError.getMessage();
             }
@@ -341,7 +378,9 @@ public class CertSignController {
                     request.getSigWidth(), request.getSigHeight());
         }
 
-        CreateSignature createSignature = new CreateSignature(ks, keystorePassword.toCharArray());
+        String keyPin =
+                usedPkcs11 && pin != null && !pin.isBlank() ? pin : keystorePassword;
+        CreateSignature createSignature = new CreateSignature(ks, keyPin.toCharArray());
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         sign(
                 pdfDocumentFactory,

@@ -48,4 +48,7 @@ public class SignPDFWithCertRequest extends PDFFile {
 
     @Schema(description = "Whether to show a logo in the signature", defaultValue = "false")
     private Boolean showLogo;
+
+    @Schema(description = "Smart card PIN for PKCS#11 authentication. Required for most smart cards.")
+    private String pin;
 }
