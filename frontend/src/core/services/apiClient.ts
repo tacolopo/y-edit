@@ -26,6 +26,14 @@ setupApiInterceptors(apiClient);
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Normalize Blob error data so all downstream handlers can read it.
+    // Tool endpoints use responseType: 'blob', so error bodies arrive as Blob.
+    if (error?.response?.data && typeof error.response.data?.text === 'function') {
+      try {
+        const text = await error.response.data.text();
+        try { error.response.data = JSON.parse(text); } catch { error.response.data = text; }
+      } catch { /* leave as-is */ }
+    }
     await handleHttpError(error); // Handle error (shows toast unless suppressed)
     return Promise.reject(error);
   }

@@ -7,10 +7,16 @@ import { normalizeAxiosErrorData } from '@app/services/errorUtils';
 /**
  * Default error extractor that follows the standard pattern
  */
+const extractFromData = (data: any): string | null => {
+  if (typeof data === 'string') return data;
+  if (data?.detail) return data.detail;   // RFC 7807 ProblemDetail
+  if (data?.message) return data.message;  // Generic JSON error
+  return null;
+};
+
 export const extractErrorMessage = (error: any): string => {
-  if (error.response?.data && typeof error.response.data === 'string') {
-    return error.response.data;
-  }
+  const fromData = extractFromData(error.response?.data);
+  if (fromData) return fromData;
   if (error.message) {
     return error.message;
   }
@@ -24,9 +30,8 @@ export const extractErrorMessage = (error: any): string => {
  */
 export const createStandardErrorHandler = (fallbackMessage: string) => {
   return (error: any): string => {
-    if (error.response?.data && typeof error.response.data === 'string') {
-      return error.response.data;
-    }
+    const fromData = extractFromData(error.response?.data);
+    if (fromData) return fromData;
     if (error.message) {
       return error.message;
     }

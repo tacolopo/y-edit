@@ -7,7 +7,6 @@ import { useToolState } from '@app/hooks/tools/shared/useToolState';
 import { useToolApiCalls, type ApiCallsConfig } from '@app/hooks/tools/shared/useToolApiCalls';
 import { useToolResources } from '@app/hooks/tools/shared/useToolResources';
 import { extractErrorMessage, handle422Error } from '@app/utils/toolErrorHandler';
-import { normalizeAxiosErrorData } from '@app/services/errorUtils';
 import { StirlingFile, extractFiles, FileId, StirlingFileStub } from '@app/types/fileContext';
 import { FILE_EVENTS } from '@app/services/errorUtils';
 import { getFilenameWithoutExtension } from '@app/utils/fileUtils';
@@ -409,11 +408,6 @@ export const useToolOperation = <TParams>(
         }
       } catch (_e) { void _e; }
 
-      // Normalize Blob error data (tool endpoints use responseType: 'blob',
-      // so error bodies arrive as Blob instead of string)
-      if (error?.response?.data && typeof error.response.data?.text === 'function') {
-        error.response.data = await normalizeAxiosErrorData(error.response.data);
-      }
       const errorMessage = config.getErrorMessage?.(error) || extractErrorMessage(error);
       actions.setError(errorMessage);
       actions.setStatus('');

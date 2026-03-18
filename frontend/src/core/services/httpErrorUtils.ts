@@ -48,6 +48,7 @@ export function extractAxiosErrorMessage(error: any): { title: string; body: str
       if (!data) return typeof raw === 'string' ? raw : '';
       const ids = extractIds();
       if (ids && ids.length > 0) return `Failed files: ${ids.join(', ')}`;
+      if (data?.detail) return data.detail as string;   // RFC 7807 ProblemDetail
       if (data?.message) return data.message as string;
       if (typeof raw === 'string') return raw;
       try { return JSON.stringify(data); } catch { return ''; }
