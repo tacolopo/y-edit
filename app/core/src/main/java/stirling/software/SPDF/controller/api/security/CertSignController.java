@@ -205,6 +205,7 @@ public class CertSignController {
         Exception lastError = null;
         String pin = request.getPin();
         boolean usedPkcs11 = false;
+        java.security.Provider signingProvider = null;
 
         // Strategy 1: On Windows, try the Windows Certificate Store first.
         // This picks up smart card certificates automatically via the built-in
@@ -327,6 +328,7 @@ public class CertSignController {
                         }
                         log.info("Using PKCS#11 certificate: {}", request.getCertificateAlias());
                         usedPkcs11 = true;
+                        signingProvider = pkcs11Provider;
                         break;
                     } else {
                         if (certOnlyCount > 0) {
@@ -381,6 +383,9 @@ public class CertSignController {
         String keyPin =
                 usedPkcs11 && pin != null && !pin.isBlank() ? pin : keystorePassword;
         CreateSignature createSignature = new CreateSignature(ks, keyPin.toCharArray());
+        if (signingProvider != null) {
+            createSignature.setSigningProvider(signingProvider);
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         sign(
                 pdfDocumentFactory,
@@ -546,7 +551,9 @@ public class CertSignController {
                     cs.newLine();
                     cs.showText(date);
                     cs.newLine();
-                    cs.showText(reason);
+                    if (reason != null && !reason.isEmpty()) {
+                        cs.showText(reason);
+                    }
 
                     cs.endText();
                 }

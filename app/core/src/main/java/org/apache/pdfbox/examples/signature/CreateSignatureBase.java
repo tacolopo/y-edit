@@ -49,6 +49,7 @@ public abstract class CreateSignatureBase implements SignatureInterface {
     private PrivateKey privateKey;
     @Getter private Certificate[] certificateChain;
     @Setter private String tsaUrl;
+    @Setter private java.security.Provider signingProvider;
 
     /**
      * Specifies whether the external signing scenario should be used. If set to {@code true},
@@ -136,8 +137,11 @@ public abstract class CreateSignatureBase implements SignatureInterface {
         try {
             CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
             X509Certificate cert = (X509Certificate) certificateChain[0];
-            ContentSigner sha1Signer =
-                    new JcaContentSignerBuilder("SHA256WithRSA").build(privateKey);
+            JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder("SHA256WithRSA");
+            if (signingProvider != null) {
+                signerBuilder.setProvider(signingProvider);
+            }
+            ContentSigner sha1Signer = signerBuilder.build(privateKey);
             gen.addSignerInfoGenerator(
                     new JcaSignerInfoGeneratorBuilder(
                                     new JcaDigestCalculatorProviderBuilder().build())
