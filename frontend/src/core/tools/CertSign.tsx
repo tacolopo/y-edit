@@ -4,7 +4,7 @@ import { createToolFlow } from "@app/components/tools/shared/createToolFlow";
 import { useCertSignParameters } from "@app/hooks/tools/certSign/useCertSignParameters";
 import { useCertSignOperation } from "@app/hooks/tools/certSign/useCertSignOperation";
 import { useBaseTool } from "@app/hooks/tools/shared/useBaseTool";
-import { useAnnotation } from "@app/contexts/AnnotationContext";
+import { useSignature } from "@app/contexts/SignatureContext";
 import { BaseToolProps, ToolComponent } from "@app/types/tool";
 import { Text, TextInput, Stack, Group, Button } from "@mantine/core";
 
@@ -19,7 +19,7 @@ interface DrawnRect {
 
 const CertSign = (props: BaseToolProps) => {
   const { t } = useTranslation();
-  const { annotationApiRef } = useAnnotation();
+  const { annotationApiRef } = useSignature();
   const [drawnRect, setDrawnRect] = useState<DrawnRect | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
