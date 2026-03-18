@@ -202,51 +202,24 @@ public class CertSignController {
 
         KeyStore ks = null;
         String keystorePassword = "";
-
-        // Access smart card reader via PKCS#11
-        log.info("Accessing smart card reader via PKCS#11...");
-
-        // Search for PIV/smart card middleware DLLs
-        String[] pkcs11Paths = {
-            System.getenv("SystemRoot") + "\\System32\\opensc-pkcs11.dll",
-            System.getenv("ProgramFiles") + "\\HID Global\\ActivClient\\acpkcs211.dll",
-            System.getenv("ProgramFiles(x86)") + "\\HID Global\\ActivClient\\acpkcs211.dll",
-            System.getenv("ProgramFiles") + "\\OpenSC Project\\OpenSC\\pkcs11\\opensc-pkcs11.dll",
-            "C:\\Windows\\System32\\opensc-pkcs11.dll",
-        };
-
         Exception lastError = null;
-        String triedPaths = "";
 
-        for (String dllPath : pkcs11Paths) {
-            if (dllPath == null || !new java.io.File(dllPath).exists()) {
-                continue;
-            }
-            log.info("Found PKCS#11 library: {}", dllPath);
-            triedPaths += dllPath + "; ";
+        // Strategy 1: On Windows, try the Windows Certificate Store first.
+        // This picks up smart card certificates automatically via the built-in
+        // minidriver — no PKCS#11 DLL required.
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        if (osName.contains("win")) {
+            log.info("Trying Windows-MY certificate store (built-in smart card support)...");
             try {
-                String pkcs11Config = "--name=SmartCard\nlibrary=" + dllPath;
-                java.security.Provider baseProvider = Security.getProvider("SunPKCS11");
-                if (baseProvider == null) {
-                    baseProvider =
-                            (java.security.Provider)
-                                    Class.forName("sun.security.pkcs11.SunPKCS11")
-                                            .getDeclaredConstructor()
-                                            .newInstance();
-                }
-                java.security.Provider pkcs11Provider = baseProvider.configure(pkcs11Config);
-                Security.addProvider(pkcs11Provider);
+                ks = KeyStore.getInstance("Windows-MY");
+                ks.load(null, null);
 
-                ks = KeyStore.getInstance("PKCS11", pkcs11Provider);
-                ks.load(null, null); // PIN prompted by smart card middleware
-
-                // Find first signing certificate on the card
                 String foundAlias = null;
                 java.util.Enumeration<String> aliases = ks.aliases();
                 while (aliases.hasMoreElements()) {
                     String alias = aliases.nextElement();
-                    log.info("PKCS#11 alias: {} (isKeyEntry={})", alias, ks.isKeyEntry(alias));
                     if (ks.isKeyEntry(alias)) {
+                        log.info("Windows-MY alias: {} (isKeyEntry=true)", alias);
                         foundAlias = alias;
                         break;
                     }
@@ -260,32 +233,96 @@ public class CertSignController {
                             name = foundAlias;
                         }
                     }
-                    log.info("Using PKCS#11 certificate: {}", request.getCertificateAlias());
-                    break;
+                    log.info("Using Windows-MY certificate: {}", request.getCertificateAlias());
                 } else {
-                    log.warn("No signing certificates found on card via {}", dllPath);
+                    log.warn("No signing certificates found in Windows-MY store");
                     ks = null;
                 }
             } catch (Exception e) {
-                log.error("PKCS#11 error with {}: {}", dllPath, e.getMessage(), e);
+                log.warn("Windows-MY keystore not available: {}", e.getMessage());
                 lastError = e;
                 ks = null;
             }
         }
 
+        // Strategy 2: Fall back to PKCS#11 middleware DLLs
         if (ks == null) {
-            String errorMsg;
-            if (triedPaths.isEmpty()) {
-                errorMsg =
-                        "No PKCS#11 middleware found. Install OpenSC or ActivClient to use"
-                                + " your smart card reader.";
-            } else {
-                errorMsg =
-                        "No signing certificate found on smart card. Ensure your HSPD-12"
-                                + " badge is inserted in the reader.";
-                if (lastError != null) {
-                    errorMsg += " Error: " + lastError.getMessage();
+            log.info("Trying PKCS#11 smart card middleware...");
+
+            String[] pkcs11Paths = {
+                System.getenv("SystemRoot") + "\\System32\\opensc-pkcs11.dll",
+                System.getenv("ProgramFiles") + "\\HID Global\\ActivClient\\acpkcs211.dll",
+                System.getenv("ProgramFiles(x86)") + "\\HID Global\\ActivClient\\acpkcs211.dll",
+                System.getenv("ProgramFiles") + "\\OpenSC Project\\OpenSC\\pkcs11\\opensc-pkcs11.dll",
+                "C:\\Windows\\System32\\opensc-pkcs11.dll",
+                "/usr/lib/opensc-pkcs11.so",
+                "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
+                "/usr/lib64/opensc-pkcs11.so",
+            };
+
+            String triedPaths = "";
+
+            for (String dllPath : pkcs11Paths) {
+                if (dllPath == null || !new java.io.File(dllPath).exists()) {
+                    continue;
                 }
+                log.info("Found PKCS#11 library: {}", dllPath);
+                triedPaths += dllPath + "; ";
+                try {
+                    String pkcs11Config = "--name=SmartCard\nlibrary=" + dllPath;
+                    java.security.Provider baseProvider = Security.getProvider("SunPKCS11");
+                    if (baseProvider == null) {
+                        baseProvider =
+                                (java.security.Provider)
+                                        Class.forName("sun.security.pkcs11.SunPKCS11")
+                                                .getDeclaredConstructor()
+                                                .newInstance();
+                    }
+                    java.security.Provider pkcs11Provider = baseProvider.configure(pkcs11Config);
+                    Security.addProvider(pkcs11Provider);
+
+                    ks = KeyStore.getInstance("PKCS11", pkcs11Provider);
+                    ks.load(null, null); // PIN prompted by smart card middleware
+
+                    String foundAlias = null;
+                    java.util.Enumeration<String> aliases = ks.aliases();
+                    while (aliases.hasMoreElements()) {
+                        String alias = aliases.nextElement();
+                        log.info("PKCS#11 alias: {} (isKeyEntry={})", alias, ks.isKeyEntry(alias));
+                        if (ks.isKeyEntry(alias)) {
+                            foundAlias = alias;
+                            break;
+                        }
+                    }
+
+                    if (foundAlias != null) {
+                        if (request.getCertificateAlias() == null
+                                || request.getCertificateAlias().isBlank()) {
+                            request.setCertificateAlias(foundAlias);
+                            if (name == null || name.isBlank() || "SPDF".equals(name)) {
+                                name = foundAlias;
+                            }
+                        }
+                        log.info("Using PKCS#11 certificate: {}", request.getCertificateAlias());
+                        break;
+                    } else {
+                        log.warn("No signing certificates found on card via {}", dllPath);
+                        ks = null;
+                    }
+                } catch (Exception e) {
+                    log.error("PKCS#11 error with {}: {}", dllPath, e.getMessage(), e);
+                    lastError = e;
+                    ks = null;
+                }
+            }
+        }
+
+        if (ks == null) {
+            String errorMsg =
+                    "No signing certificate found. Ensure your smart card is inserted"
+                            + " and its certificate is visible in Windows (certmgr.msc).";
+            if (lastError != null) {
+                errorMsg += " Error: " + lastError.getMessage();
             }
             log.error(errorMsg);
             throw ExceptionUtils.createIllegalArgumentException(
