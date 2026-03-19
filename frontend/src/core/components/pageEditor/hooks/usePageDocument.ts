@@ -77,6 +77,11 @@ export function usePageDocument(): PageDocumentHook {
 
     const file = selectors.getFile(primaryFileId);
     if (!file) {
+      // File ID exists in state but File object not yet in filesRef - still loading/hydrating.
+      // Don't clear the placeholder; wait for the file to become available on the next render.
+      if (state.files.ids.includes(primaryFileId)) {
+        return;
+      }
       placeholderDocumentRef.current = null;
       setPlaceholderVersion(v => v + 1);
       return;
@@ -122,7 +127,7 @@ export function usePageDocument(): PageDocumentHook {
     return () => {
       canceled = true;
     };
-  }, [primaryFileId, primaryStirlingFileStub?.processedFile, selectors]);
+  }, [primaryFileId, primaryStirlingFileStub?.processedFile, selectors, state.files.ids]);
 
   // Compute merged document with stable signature (prevents infinite loops)
   const currentPagesSignature = useMemo(() => {
@@ -400,8 +405,9 @@ export function usePageDocument(): PageDocumentHook {
     return mergedPdfDocument ? mergedPdfDocument.totalPages > 2000 : false;
   }, [mergedPdfDocument?.totalPages]);
 
-  // Loading state
-  const isLoading = globalProcessing && !mergedPdfDocument;
+  // Loading state - also loading when file ID exists but File object not yet available
+  const isFileHydrating = !!primaryFileId && state.files.ids.includes(primaryFileId) && !selectors.getFile(primaryFileId);
+  const isLoading = isFileHydrating || (globalProcessing && !mergedPdfDocument);
 
   return {
     document: mergedPdfDocument,

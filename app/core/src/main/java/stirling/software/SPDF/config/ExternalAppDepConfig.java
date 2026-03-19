@@ -12,9 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
-
-import jakarta.annotation.PostConstruct;
+import org.springframework.context.event.EventListener;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,7 +82,7 @@ public class ExternalAppDepConfig {
         return dependenciesChecked;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void checkDependencies() {
         try {
             // core checks in parallel

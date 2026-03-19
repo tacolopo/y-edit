@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -88,10 +90,13 @@ public class TempFileCleanupService {
 
     @PostConstruct
     public void init() {
-        // Create necessary directories
+        // Create necessary directories (fast, needed before app can serve requests)
         ensureDirectoriesExist();
+    }
 
-        // Perform startup cleanup if enabled
+    @EventListener(ApplicationReadyEvent.class)
+    public void deferredStartupCleanup() {
+        // Perform startup cleanup after the app is ready to serve requests
         if (applicationProperties.getSystem().getTempFileManagement().isStartupCleanup()) {
             runStartupCleanup();
         }

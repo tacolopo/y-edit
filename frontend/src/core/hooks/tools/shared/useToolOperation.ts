@@ -64,6 +64,10 @@ export const useToolOperation = <TParams>(
   const { addFiles, consumeFiles, undoConsumeFiles, selectors } = useFileContext();
   const { actions: navActions } = useNavigationActions();
 
+  // Track mount state to prevent setState on unmounted component
+  const isMountedRef = useRef(true);
+  useEffect(() => () => { isMountedRef.current = false; }, []);
+
   // Composed hooks
   const { state, actions } = useToolState();
   const { actions: fileActions } = useFileContext();
@@ -413,8 +417,10 @@ export const useToolOperation = <TParams>(
       actions.setStatus('');
     } finally {
       window.removeEventListener(FILE_EVENTS.markError, errorListener as EventListener);
-      actions.setLoading(false);
-      actions.setProgress(null);
+      if (isMountedRef.current) {
+        actions.setLoading(false);
+        actions.setProgress(null);
+      }
     }
   }, [t, config, actions, addFiles, consumeFiles, navActions, processFiles, generateThumbnails, createDownloadInfo, cleanupBlobUrls, extractZipFiles, willUseCloud, checkCredits]);
 
