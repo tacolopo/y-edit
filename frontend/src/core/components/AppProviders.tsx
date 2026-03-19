@@ -98,6 +98,7 @@ export function AppProviders({ children, appConfigRetryOptions, appConfigProvide
           <BannerProvider>
               <AppConfigProvider
                 retryOptions={appConfigRetryOptions}
+                bootstrapMode="lazy"
                 {...appConfigProviderProps}
               >
                 <ScarfTrackingInitializer />

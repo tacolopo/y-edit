@@ -57,10 +57,15 @@ export function useFileSelection() {
   const { state, selectors } = useFileState();
   const { actions } = useFileActions();
 
-  // Memoize selected files to avoid recreating arrays
+  // Memoize selected files - use a derived key instead of entire byId object
+  // to avoid invalidation when unrelated file metadata changes
+  const selectedVersionKey = state.ui.selectedFileIds
+    .map(id => `${id}:${state.files.byId[id]?.versionNumber ?? 0}`)
+    .join(',');
   const selectedFiles = useMemo(() => {
     return selectors.getSelectedFiles();
-  }, [state.ui.selectedFileIds, state.files.byId, selectors]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.ui.selectedFileIds, selectedVersionKey, selectors]);
 
   return useMemo(() => ({
     selectedFiles,

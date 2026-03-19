@@ -84,6 +84,8 @@ function FileContextInner({
   const [isUnlocking, setIsUnlocking] = useState(false);
   const dismissedEncryptedFilesRef = useRef<Set<FileId>>(new Set());
   const observedFileIdsRef = useRef<Set<FileId>>(new Set());
+  const activeEncryptedFileIdRef = useRef<FileId | null>(activeEncryptedFileId);
+  activeEncryptedFileIdRef.current = activeEncryptedFileId;
 
   const enqueueEncryptedFiles = useCallback((fileIds: FileId[]) => {
     if (fileIds.length === 0) return;
@@ -92,14 +94,14 @@ function FileContextInner({
       const next = [...prevQueue];
       for (const id of fileIds) {
         if (dismissedEncryptedFilesRef.current.has(id)) continue;
-        if (id === activeEncryptedFileId) continue;
+        if (id === activeEncryptedFileIdRef.current) continue;
         if (existing.has(id)) continue;
         existing.add(id);
         next.push(id);
       }
       return next;
     });
-  }, [activeEncryptedFileId]);
+  }, []);
 
   useEffect(() => {
     const previousIds = observedFileIdsRef.current;

@@ -122,7 +122,7 @@ public class ResourceMonitor {
     public void initialize() {
         log.debug("Starting resource monitoring with interval of {}ms", monitorIntervalMs);
         scheduler.scheduleAtFixedRate(
-                this::updateResourceMetrics, 0, monitorIntervalMs, TimeUnit.MILLISECONDS);
+                this::updateResourceMetrics, monitorIntervalMs, monitorIntervalMs, TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy

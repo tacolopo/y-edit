@@ -396,24 +396,31 @@ public class CertSignController {
         if (signingProvider != null) {
             createSignature.setSigningProvider(signingProvider);
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        sign(
-                pdfDocumentFactory,
-                pdf,
-                baos,
-                createSignature,
-                showSignature,
-                pageNumber,
-                name,
-                location,
-                reason,
-                showLogo,
-                request.getSignatureFieldName(),
-                userRect);
-        // Return the signed PDF
-        return WebResponseUtils.bytesToWebResponse(
-                baos.toByteArray(),
-                GeneralUtils.generateFilename(pdf.getOriginalFilename(), "_signed.pdf"));
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            sign(
+                    pdfDocumentFactory,
+                    pdf,
+                    baos,
+                    createSignature,
+                    showSignature,
+                    pageNumber,
+                    name,
+                    location,
+                    reason,
+                    showLogo,
+                    request.getSignatureFieldName(),
+                    userRect);
+            // Return the signed PDF
+            return WebResponseUtils.bytesToWebResponse(
+                    baos.toByteArray(),
+                    GeneralUtils.generateFilename(pdf.getOriginalFilename(), "_signed.pdf"));
+        } finally {
+            // Clean up temporary logo file to prevent leak
+            if (createSignature.logoFile != null && createSignature.logoFile.exists()) {
+                createSignature.logoFile.delete();
+            }
+        }
     }
 
     private MultipartFile validateFilePresent(
@@ -556,10 +563,18 @@ public class CertSignController {
                     // Use user-entered name from PDSignature; fall back to certificate CN
                     String signedByName = signature.getName();
                     if (signedByName == null || signedByName.isBlank()) {
-                        X509Certificate cert = (X509Certificate) getCertificateChain()[0];
-                        X500Name x500Name = new X500Name(cert.getSubjectX500Principal().getName());
-                        RDN cn = x500Name.getRDNs(BCStyle.CN)[0];
-                        signedByName = IETFUtils.valueToString(cn.getFirst().getValue());
+                        java.security.cert.Certificate[] chain = getCertificateChain();
+                        if (chain != null && chain.length > 0 && chain[0] instanceof X509Certificate cert) {
+                            X500Name x500Name = new X500Name(cert.getSubjectX500Principal().getName());
+                            RDN[] cnRdns = x500Name.getRDNs(BCStyle.CN);
+                            if (cnRdns.length > 0) {
+                                signedByName = IETFUtils.valueToString(cnRdns[0].getFirst().getValue());
+                            } else {
+                                signedByName = "Unknown Signer";
+                            }
+                        } else {
+                            signedByName = "Unknown Signer";
+                        }
                     }
 
                     String date = signature.getSignDate().getTime().toString();

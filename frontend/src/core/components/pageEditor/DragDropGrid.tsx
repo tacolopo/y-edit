@@ -301,6 +301,8 @@ const DragDropGrid = <T extends DragDropItem>({
 }: DragDropGridProps<T>) => {
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+  // Cache item bounding rects during box selection to avoid layout thrashing
+  const cachedItemRectsRef = useRef<Map<string, { left: number; right: number; top: number; bottom: number }> | null>(null);
 
   const getScrollElement = useCallback(() => {
     return containerRef.current?.closest('[data-scrolling-container]') as HTMLElement | null;
@@ -524,6 +526,18 @@ const DragDropGrid = <T extends DragDropItem>({
     e.preventDefault();
 
     const rect = container.getBoundingClientRect();
+    // Snapshot all item positions once at selection start to avoid layout thrashing during mousemove
+    const rects = new Map<string, { left: number; right: number; top: number; bottom: number }>();
+    itemRefs.current.forEach((pageEl, pageId) => {
+      const pageRect = pageEl.getBoundingClientRect();
+      rects.set(pageId, {
+        left: pageRect.left - rect.left,
+        right: pageRect.right - rect.left,
+        top: pageRect.top - rect.top,
+        bottom: pageRect.bottom - rect.top,
+      });
+    });
+    cachedItemRectsRef.current = rects;
     setIsBoxSelecting(true);
     setBoxSelectStart({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     setBoxSelectEnd({ x: e.clientX - rect.left, y: e.clientY - rect.top });
@@ -545,25 +559,21 @@ const DragDropGrid = <T extends DragDropItem>({
     const boxBottom = Math.max(boxSelectStart.y, e.clientY - rect.top);
 
     const selectedIds: string[] = [];
-    itemRefs.current.forEach((pageEl, pageId) => {
-      const pageRect = pageEl.getBoundingClientRect();
-      const pageLeft = pageRect.left - rect.left;
-      const pageRight = pageRect.right - rect.left;
-      const pageTop = pageRect.top - rect.top;
-      const pageBottom = pageRect.bottom - rect.top;
-
-      // Check if page intersects with selection box
-      const intersects = !(
-        pageRight < boxLeft ||
-        pageLeft > boxRight ||
-        pageBottom < boxTop ||
-        pageTop > boxBottom
-      );
-
-      if (intersects) {
-        selectedIds.push(pageId);
-      }
-    });
+    // Use cached rects from mousedown to avoid getBoundingClientRect per item per frame
+    const cached = cachedItemRectsRef.current;
+    if (cached) {
+      cached.forEach((itemRect, pageId) => {
+        const intersects = !(
+          itemRect.right < boxLeft ||
+          itemRect.left > boxRight ||
+          itemRect.bottom < boxTop ||
+          itemRect.top > boxBottom
+        );
+        if (intersects) {
+          selectedIds.push(pageId);
+        }
+      });
+    }
 
     setBoxSelectedPageIds(selectedIds);
   }, [isBoxSelecting, boxSelectStart]);
@@ -575,6 +585,7 @@ const DragDropGrid = <T extends DragDropItem>({
       setIsBoxSelecting(false);
       setBoxSelectStart(null);
       setBoxSelectEnd(null);
+      cachedItemRectsRef.current = null;
     }
   }, [isBoxSelecting]);
 

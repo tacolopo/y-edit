@@ -105,5 +105,16 @@ export default defineConfig(({ mode }) => {
       },
     },
     base: env.RUN_SUBPATH ? `/${env.RUN_SUBPATH}` : './',
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            mantine: ['@mantine/core', '@mantine/hooks'],
+            pdfjs: ['pdfjs-dist'],
+          },
+        },
+      },
+    },
   };
 });
